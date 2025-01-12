@@ -1,10 +1,7 @@
 // src/utils/BookGenerator.ts
 
 import { OpenAIService } from "./OpenAIService";
-import JSZip from "jszip";
-import { saveAs } from "file-saver";
-import path from "path";
-
+import { Page } from "../types/Book";
 export interface BookSettings {
   title: string;
   childName: string;
@@ -26,34 +23,6 @@ export interface BookSettings {
     imageModel?: string;
   };
   openAIApiKey: string;
-}
-
-export interface Page {
-  text: string;
-  illustrationBase64: string;
-}
-
-// Utility Function to Format ISO Date without Milliseconds
-function formatISODate(date: Date): string {
-  return date.toISOString().split(".")[0] + "Z";
-}
-
-/**
- * Sanitizes a string for XML by escaping special characters.
- * @param str The input string.
- * @returns The sanitized string.
- */
-function sanitizeForXML(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
-
-function generateUUID(): string {
-  return crypto.randomUUID();
 }
 
 export class BookGenerator {
@@ -269,173 +238,6 @@ ${storySoFar}`;
     return summary;
   }
 
-  /**
-   * Generates an EPUB file from the generated pages with embedded Base64 images.
-   * @param pages Array of Page objects containing text and Base64-encoded illustrations.
-   */
-  async generateEPUB(pages: Page[]): Promise<Blob> {
-    console.log("Starting EPUB generation...");
-
-    const zip = new JSZip();
-
-    // 1. Add mimetype file (must be the first file and uncompressed)
-    zip.file("mimetype", "application/epub+zip", { compression: "STORE" });
-
-    // 2. META-INF/container.xml
-    const containerXml = `<?xml version="1.0" encoding="UTF-8"?>
-  <container version="1.0"
-             xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
-     <rootfiles>
-        <rootfile full-path="OEBPS/content.opf"
-                  media-type="application/oebps-package+xml"/>
-     </rootfiles>
-  </container>`;
-    zip.folder("META-INF")!.file("container.xml", containerXml);
-
-    // 3. OEBPS/content.opf
-    const formattedDate = formatISODate(new Date());
-    const metadata = `<metadata xmlns="http://www.idpf.org/2007/opf"
-            xmlns:dc="http://purl.org/dc/elements/1.1/"
-            xmlns:dcterms="http://purl.org/dc/terms/"
-            xmlns:opf="http://www.idpf.org/2007/opf"
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <dc:title>${sanitizeForXML(this.bookSettings.title)}</dc:title>
-    <dc:language>${sanitizeForXML(this.bookSettings.language)}</dc:language>
-    <dc:identifier id="BookId">urn:uuid:${generateUUID()}</dc:identifier>
-    <dc:creator>${sanitizeForXML(
-      `${this.bookSettings.childName}'s Author`
-    )}</dc:creator>
-    <dc:date>${formattedDate}</dc:date>
-    <meta property="dcterms:modified">${formattedDate}</meta>
-  </metadata>`;
-
-    const manifestItems = `
-      <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>
-      <item id="css" href="styles.css" media-type="text/css"/>
-      <item id="content" href="content.xhtml" media-type="application/xhtml+xml"/>
-    `;
-
-    const spineItems = `<itemref idref="content"/>`;
-
-    const contentOpf = `<?xml version="1.0" encoding="UTF-8"?>
-  <package xmlns="http://www.idpf.org/2007/opf"
-           unique-identifier="BookId"
-           version="3.0">
-    ${metadata}
-    <manifest>${manifestItems}</manifest>
-    <spine>${spineItems}</spine>
-  </package>`;
-    zip.folder("OEBPS")!.file("content.opf", contentOpf);
-
-    // 4. OEBPS/nav.xhtml
-    const navXhtml = `<?xml version="1.0" encoding="UTF-8"?>
-  <!DOCTYPE html>
-  <html xmlns="http://www.w3.org/1999/xhtml"
-        xmlns:epub="http://www.idpf.org/2007/ops">
-  <head>
-    <title>Table of Contents</title>
-  </head>
-  <body>
-    <nav epub:type="toc" id="toc">
-      <h1>Table of Contents</h1>
-      <ol>
-        <li><a href="content.xhtml">Content</a></li>
-      </ol>
-    </nav>
-  </body>
-  </html>`;
-    zip.folder("OEBPS")!.file("nav.xhtml", navXhtml);
-
-    // 5. OEBPS/content.xhtml with the title page
-    let contentXhtml = `<?xml version="1.0" encoding="UTF-8"?>
-  <!DOCTYPE html>
-  <html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <title>${sanitizeForXML(this.bookSettings.title)}</title>
-    <link rel="stylesheet" type="text/css" href="styles.css"/>
-  </head>
-  <body>
-    <div class="title-page">
-      <h1>${sanitizeForXML(this.bookSettings.title)}</h1>
-    </div>
-  `;
-
-    // Append pages
-    pages.forEach((page, i) => {
-      contentXhtml += `
-        <div class="section">
-          <p>${sanitizeForXML(page.text).replace(/\n/g, "<br/>")}</p>
-        </div>
-        <div class="illustration">
-          ${
-            page.illustrationBase64
-              ? `<img src="data:image/png;base64,${
-                  page.illustrationBase64
-                }" alt="Illustration for page ${i + 1}" />`
-              : ""
-          }
-        </div>
-      `;
-    });
-
-    contentXhtml += `
-  </body>
-  </html>`;
-    zip.folder("OEBPS")!.file("content.xhtml", contentXhtml);
-
-    // 6. CSS file
-    const stylesCss = `
-  body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    // background: linear-gradient(to bottom right, #f0f8ff, #e6e6fa);
-    // // Soft Sunset
-    // background: linear-gradient(to bottom right, #ffe5b4, #ff7e5f);
-    // // Ocean Waves
-    background: linear-gradient(to bottom right, #a1c4fd, #c2e9fb);
-    // // Mint Green
-    // background: linear-gradient(to bottom right, #d4fc79, #96e6a1);
-    // // Lavender Dreams
-    // background: linear-gradient(to bottom right, #e0c3fc, #8ec5fc);
-
-  }
-  h1 {
-    font-size: 48px;
-    font-weight: bold;
-  }
-  .title-page {
-    text-align: center;
-    margin-bottom: 40px;
-  }
-  .section {
-    margin-bottom: 40px;
-    font-size: 22px;
-  }
-  .illustration {
-    text-align: center;
-    margin-bottom: 40px;
-  }
-
-  .illustration img {
-    width: 100% !important;
-    max-width: none !important; /* Override the max-width from epub.js */
-    height: auto; /* Maintain aspect ratio */
-    display: block; /* Remove inline spacing issues */
-    margin: 0; /* Remove any default margin */
-    padding: 0; /* Remove any default padding */
-  }`;
-
-    zip.folder("OEBPS")!.file("styles.css", stylesCss);
-    // 7. Generate the EPUB
-    const epubBlob = await zip.generateAsync({
-      type: "blob",
-      compression: "DEFLATE",
-      compressionOptions: { level: 9 },
-    });
-
-    return epubBlob;
-  }
-
   async generateBook(onProgress: (progress: number, message: string) => void) {
     onProgress(10, "Generating story outline...");
     const storyOutline = await this.generateStoryOutline();
@@ -452,100 +254,103 @@ ${storySoFar}`;
         10 + ((pageNumber - 1) / this.bookSettings.numPages) * 90,
         `Generating page ${pageNumber} of ${this.bookSettings.numPages}`
       );
-      //   try {
-      // Generate the next section
-      let currentSection = await this.generateNextPage(
-        storyOutline,
-        storySoFar,
-        pageNumber
-      );
-      console.log(`Page ${pageNumber} text generated.`);
-
-      // Get feedback for the current section
-      let feedback = await this.getFeedbackForPage(
-        storyOutline,
-        storySoFar,
-        currentSection
-      );
-
-      // Iterate if feedback is not OK
-      let iterations = 0;
-      while (feedback.toLowerCase() !== "ok" && iterations < 10) {
-        console.log(
-          `Got feedback ${
-            iterations + 1
-          } for page ${pageNumber}. Attempting to revise...`
-        );
-        currentSection = await this.generateNextPage(
+      try {
+        // Generate the next section
+        let currentSection = await this.generateNextPage(
           storyOutline,
           storySoFar,
-          pageNumber,
-          feedback
+          pageNumber
         );
-        console.log(`Page ${pageNumber} revised.`);
-        feedback = await this.getFeedbackForPage(
+        console.log(`Page ${pageNumber} text generated.`);
+
+        // Get feedback for the current section
+        let feedback = await this.getFeedbackForPage(
           storyOutline,
           storySoFar,
           currentSection
         );
-        iterations += 1;
-      }
 
-      if (feedback.toLowerCase() !== "ok") {
-        console.log(
-          `Failed to generate a satisfactory section after ${iterations} attempts. Ending story.`
+        // Iterate if feedback is not OK
+        let iterations = 0;
+        while (feedback.toLowerCase() !== "ok" && iterations < 10) {
+          console.log(
+            `Got feedback ${
+              iterations + 1
+            } for page ${pageNumber}. Attempting to revise...`
+          );
+          currentSection = await this.generateNextPage(
+            storyOutline,
+            storySoFar,
+            pageNumber,
+            feedback
+          );
+          console.log(`Page ${pageNumber} revised.`);
+          feedback = await this.getFeedbackForPage(
+            storyOutline,
+            storySoFar,
+            currentSection
+          );
+          iterations += 1;
+        }
+
+        if (feedback.toLowerCase() !== "ok") {
+          console.log(
+            `Failed to generate a satisfactory section after ${iterations} attempts. Ending story.`
+          );
+          break;
+        } else {
+          console.log(
+            `Page ${pageNumber} approved after ${iterations} ${
+              iterations === 1 ? "iteration" : "iterations"
+            }.`
+          );
+        }
+
+        // Check if the section indicates the end of the story
+        if (/the end/i.test(currentSection)) {
+          console.log(
+            `"The end" detected in page ${pageNumber}. Ending story.`
+          );
+          storyHasFinished = true;
+        }
+
+        // Generate or update the story summary
+        storySummary = await this.summarizeStory(
+          storySoFar + "\n" + currentSection
         );
+
+        // Update storySoFar
+        storySoFar += `\n${currentSection}`;
+
+        onProgress(
+          10 + ((pageNumber - 0.5) / this.bookSettings.numPages) * 90,
+          `Generating illustration for page ${pageNumber}`
+        );
+        // Generate illustration for the section
+        const illustrationBase64 = await this.generateIllustrationForPage(
+          pageNumber,
+          storySummary,
+          currentSection
+        );
+
+        // Add the section to the sections array with illustrationBase64
+        this.pages.push({
+          text: currentSection,
+          illustrationBase64: illustrationBase64,
+        });
+
+        console.log(`Page ${pageNumber} completed.\n`);
+        pageNumber += 1;
+      } catch (error) {
+        console.error(`Error generating page ${pageNumber}:`, error);
         break;
-      } else {
-        console.log(
-          `Page ${pageNumber} approved after ${iterations} ${
-            iterations === 1 ? "iteration" : "iterations"
-          }.`
-        );
       }
-
-      // Check if the section indicates the end of the story
-      if (/the end/i.test(currentSection)) {
-        console.log(`"The end" detected in page ${pageNumber}. Ending story.`);
-        storyHasFinished = true;
-      }
-
-      // Generate or update the story summary
-      storySummary = await this.summarizeStory(
-        storySoFar + "\n" + currentSection
-      );
-
-      // Update storySoFar
-      storySoFar += `\n${currentSection}`;
-
-      onProgress(
-        10 + ((pageNumber - 0.5) / this.bookSettings.numPages) * 90,
-        `Generating illustration for page ${pageNumber}`
-      );
-      // Generate illustration for the section
-      const illustrationBase64 = await this.generateIllustrationForPage(
-        pageNumber,
-        storySummary,
-        currentSection
-      );
-
-      // Add the section to the sections array with illustrationBase64
-      this.pages.push({
-        text: currentSection,
-        illustrationBase64: illustrationBase64,
-      });
-
-      console.log(`Page ${pageNumber} completed.\n`);
-      pageNumber += 1;
-      //   } catch (error) {
-      //     console.error(`Error generating page ${pageNumber}:`, error);
-      //     break;
-      //   }
     }
 
-    // Generate EPUB
-    const epubBlob = await this.generateEPUB(this.pages);
-    saveAs(epubBlob, `${this.bookSettings.title}.epub`);
-    return epubBlob;
+    return {
+      id: this.bookSettings.title,
+      title: this.bookSettings.title,
+      pages: this.pages,
+    };
   }
 }
