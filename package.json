@@ -1,5 +1,5 @@
 {
-  "name": "kids-book-app",
+  "name": "dailystories",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -47,5 +47,5 @@
       "last 1 safari version"
     ]
   },
-  "homepage": "https://{username}.github.io/{repository-name}"
+  "homepage": "https://andeplane.github.io/dailystories"
 }
