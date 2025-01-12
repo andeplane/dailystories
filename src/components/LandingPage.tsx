@@ -1,21 +1,46 @@
 // src/components/LandingPage.tsx
-import React from 'react';
-import { Card, Row, Col, Button, Popconfirm, Tooltip } from 'antd';
+import React, { useState } from 'react';
+import { Card, Row, Col, Button, Popconfirm, Tooltip, Input, Form } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useBooks } from '../contexts/BookContext';
 import { Book } from '../types/Book';
+import BookSettingsModal from './BookSettingsModal';
+import { BookSettings } from '../utils/BookGenerator';
 
 const { Meta } = Card;
+
+const OPENAI_KEY_STORAGE = 'openai_api_key';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { books, addBook, deleteBook } = useBooks();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [apiKey, setApiKey] = useState<string>(() => {
+    return localStorage.getItem(OPENAI_KEY_STORAGE) || '';
+  });
+
+  const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newKey = e.target.value;
+    setApiKey(newKey);
+    localStorage.setItem(OPENAI_KEY_STORAGE, newKey);
+  };
 
   const handleCreateNew = () => {
+    if (!apiKey) return;
+    setIsModalOpen(true);
+  };
+
+  const handleModalCancel = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleModalSubmit = (settings: BookSettings) => {
+    setIsModalOpen(false);
+    // TODO: Initialize BookGenerator with settings and start generation
     addBook({
-      title: 'New Book',
-      summary: 'A new book summary',
+      title: settings.title,
+      summary: `A story about ${settings.bookTheme}`,
       coverImageBase64: undefined,
       pages: []
     }).then(newBook => {
@@ -34,6 +59,33 @@ const LandingPage: React.FC = () => {
 
   return (
     <div style={{ padding: '30px' }}>
+      <Row style={{ marginBottom: '24px' }}>
+        <Col span={8}>
+          <Form.Item
+            label="OpenAI API Key"
+            help={
+              <span style={{ fontSize: '12px' }}>
+                {!apiKey 
+                  ? "Enter your OpenAI API key to generate stories" 
+                  : "✓ API key saved in your browser's local storage"}
+              </span>
+            }
+            extra={
+              <span style={{ fontSize: '12px', color: '#666' }}>
+                Your API key is stored locally in your browser.
+              </span>
+            }
+          >
+            <Input.Password
+              value={apiKey}
+              onChange={handleApiKeyChange}
+              placeholder="Enter your OpenAI API key to generate stories"
+              style={{ width: '100%' }}
+            />
+          </Form.Item>
+        </Col>
+      </Row>
+
       <Row gutter={[16, 16]}>
         {books.map((book: Book) => (
           <Col
@@ -103,13 +155,14 @@ const LandingPage: React.FC = () => {
           xl={6}
         >
           <Card
-            hoverable
+            hoverable={!!apiKey}
             style={{
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
               height: '100%',
-              cursor: 'pointer',
+              cursor: apiKey ? 'pointer' : 'not-allowed',
+              opacity: apiKey ? 1 : 0.5,
             }}
             onClick={handleCreateNew}
           >
@@ -117,12 +170,21 @@ const LandingPage: React.FC = () => {
               type="dashed"
               icon={<PlusOutlined />}
               size="large"
+              disabled={!apiKey}
             >
               Generate New Story
             </Button>
           </Card>
         </Col>
       </Row>
+      <BookSettingsModal 
+        open={isModalOpen}
+        onCancel={() => setIsModalOpen(false)}
+        onSubmit={(settings) => {
+          handleModalSubmit({ ...settings, openAIApiKey: apiKey });
+        }}
+        apiKey={apiKey}
+      />
     </div>
   );
 };

@@ -9,6 +9,7 @@
     "@types/react": "^19.0.4",
     "@types/react-dom": "^19.0.2",
     "antd": "^5.23.0",
+    "buffer": "^6.0.3",
     "cra-template-typescript": "1.2.0",
     "openai": "^4.78.1",
     "react": "^19.0.0",
