@@ -127,7 +127,7 @@ const LandingPage: React.FC = () => {
               </div>
             }
           >
-            <Meta title="Generate a new story" />
+            <Meta title="Generate New Story" />
           </Card>
         </Col>
 
