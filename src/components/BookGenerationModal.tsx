@@ -164,23 +164,24 @@ const BookGenerationModal: React.FC<BookGenerationModalProps> = ({
       footer={null}
       closable={!isGenerating}
       maskClosable={!isGenerating}
-      width={1000}
+      width="95vw"
+      style={{ maxWidth: '1000px' }}
     >
-      <div style={{ textAlign: 'center', padding: '20px' }}>
+      <div style={{ textAlign: 'center', padding: '12px' }}>
         <Progress 
           percent={Math.round(state.progress)} 
           status={state.progress === 100 ? 'success' : 'active'}
         />
         
         {isGenerating && (
-          <div style={{ marginTop: '8px', marginBottom: '8px' }}>
+          <div style={{ margin: '8px 0' }}>
             <Text type="secondary">
               Estimated time remaining: {formatTime(timeRemaining)}
             </Text>
           </div>
         )}
 
-        <Text style={{ display: 'block', marginTop: '16px' }}>
+        <Text style={{ display: 'block', margin: '16px 0' }}>
           {state.statusMessage}
         </Text>
 
@@ -195,7 +196,7 @@ const BookGenerationModal: React.FC<BookGenerationModalProps> = ({
             <div style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: '20px',
+              gap: '16px',
               alignItems: 'center'
             }}>
               {state.coverImage && (
@@ -204,7 +205,7 @@ const BookGenerationModal: React.FC<BookGenerationModalProps> = ({
                   alt="Book cover"
                   style={{ 
                     width: '100%',
-                    maxWidth: 800,
+                    maxWidth: '400px',
                     height: 'auto'
                   }}
                 />
@@ -227,8 +228,8 @@ const BookGenerationModal: React.FC<BookGenerationModalProps> = ({
           >
             <div style={{ 
               display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '16px',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '12px',
               width: '100%'
             }}>
               {state.pageImages.map((image, index) => (
@@ -240,7 +241,11 @@ const BookGenerationModal: React.FC<BookGenerationModalProps> = ({
                   <Image
                     src={`data:image/png;base64,${image}`}
                     alt={`Page ${index + 1} illustration`}
-                    style={{ width: '100%', height: 'auto' }}
+                    style={{ 
+                      width: '100%',
+                      height: 'auto',
+                      maxWidth: '400px'
+                    }}
                   />
                 </Card>
               ))}
