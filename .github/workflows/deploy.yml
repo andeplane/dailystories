@@ -1,46 +1,37 @@
-name: Build and Deploy
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches:
-      - main
+      - main # Trigger deployment on push to the main branch
+  workflow_dispatch: # Allows manual triggers
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
 
-      - name: Use Node.js 18.x
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js (if it's a Node.js project; adapt for other environments)
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "18.x"
-          cache: "npm"
+          node-version: "18" # Specify your required Node.js version
 
-      - name: Install Packages
-        run: npm ci
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm install
 
-      - name: Build app
-        run: npm run build
+      # Step 4: Build the project
+      - name: Build project
+        run: npm run build # Ensure this command creates the files for deployment
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
-        with:
-          path: ./build
-
-  deploy:
-    needs: build
-    if: github.ref == 'refs/heads/main'
-    permissions:
-      pages: write
-      id-token: write
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    runs-on: ubuntu-latest
-    steps:
+      # Step 5: Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v1
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build
