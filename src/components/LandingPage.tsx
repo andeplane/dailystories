@@ -7,6 +7,7 @@ import { useBooks } from '../contexts/BookContext';
 import { Book } from '../types/Book';
 import BookSettingsModal from './BookSettingsModal';
 import { BookSettings } from '../utils/BookGenerator';
+import { MixpanelService } from '../utils/MixpanelService';
 
 const { Meta } = Card;
 
@@ -27,7 +28,7 @@ const LandingPage: React.FC = () => {
   };
 
   const handleCreateNew = () => {
-    if (!apiKey) return;
+    MixpanelService.trackNewBookClick();
     setIsModalOpen(true);
   };
 

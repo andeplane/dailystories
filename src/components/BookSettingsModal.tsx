@@ -3,6 +3,7 @@ import { Modal, Form, Input, InputNumber, Select, Divider, Button, message } fro
 import type { BookSettings } from '../utils/BookGenerator';
 import { OpenAIService } from '../utils/OpenAIService';
 import BookGenerationModal from './BookGenerationModal';
+import { MixpanelService } from '../utils/MixpanelService';
 const { TextArea } = Input;
 
 interface BookSettingsModalProps {
@@ -63,6 +64,9 @@ const BookSettingsModal: React.FC<BookSettingsModalProps> = ({ open, onCancel, o
 
   const handleOk = () => {
     form.validateFields().then((values) => {
+      // Add tracking before submitting
+      MixpanelService.trackBookSettingsSubmit(values);
+
       // Save preferences to localStorage (excluding storylineInstructions)
       const preferencesToSave = {
         childName: values.childName,
@@ -100,6 +104,9 @@ const BookSettingsModal: React.FC<BookSettingsModalProps> = ({ open, onCancel, o
     const interests = form.getFieldValue('interests');
     const language = form.getFieldValue('language') || 'English';
     
+    // Add tracking
+    MixpanelService.trackSuggestionClick(childAge, language);
+
     if (!childName || !childAge) {
       message.warning('Please enter the child\'s name and age first');
       return;
@@ -190,6 +197,8 @@ const BookSettingsModal: React.FC<BookSettingsModalProps> = ({ open, onCancel, o
   }, [form, apiKey]);
 
   const handleModalClose = () => {
+    // Add tracking
+    MixpanelService.trackBookSettingsCancel();
     setShowGenerationModal(false);
     setGenerationSettings(null);
     onCancel();

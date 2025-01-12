@@ -3,6 +3,7 @@ import { Typography, Image, Space, Card, Button } from 'antd';
 import { Book } from '../types/Book';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftOutlined } from '@ant-design/icons';
+import { MixpanelService } from '../utils/MixpanelService';
 
 const { Title, Paragraph } = Typography;
 
@@ -12,6 +13,10 @@ interface ScrollableBookViewerProps {
 
 const ScrollableBookViewer: React.FC<ScrollableBookViewerProps> = ({ book }) => {
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    MixpanelService.trackBookRead(book.id, book.title);
+  }, [book.id, book.title]);
 
   return (
     <Card>

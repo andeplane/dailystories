@@ -3,6 +3,7 @@ import { Modal, Progress, Typography, Card, Image, Divider } from 'antd';
 import type { BookSettings } from '../utils/BookGenerator';
 import { BookGenerator } from '../utils/BookGenerator';
 import { useBooks } from '../contexts/BookContext';
+import { MixpanelService } from '../utils/MixpanelService';
 
 const { Text, Paragraph } = Typography;
 
@@ -81,6 +82,9 @@ const BookGenerationModal: React.FC<BookGenerationModalProps> = ({
   const generateBook = React.useCallback(async () => {
     if (generationAttempted.current) return;
     
+    const startTime = Date.now();
+    const pageTimings: number[] = [];
+    
     try {
       setIsGenerating(true);
       generationAttempted.current = true;
@@ -95,6 +99,9 @@ const BookGenerationModal: React.FC<BookGenerationModalProps> = ({
         },
         (pageText, pageImage) => {
           if (pageImage) {
+            const currentTime = Date.now();
+            pageTimings.push(currentTime - startTime);
+            
             setState(prev => ({ 
               ...prev, 
               pageImages: [...prev.pageImages, pageImage],
@@ -107,6 +114,15 @@ const BookGenerationModal: React.FC<BookGenerationModalProps> = ({
         }
       );
       
+      const totalTime = Date.now() - startTime;
+      const averageTimePerPage = pageTimings.reduce((acc, time) => acc + time, 0) / pageTimings.length;
+      
+      MixpanelService.trackBookGeneration(settings, {
+        totalTime,
+        averageTimePerPage,
+        numPages: settings.numPages
+      });
+
       await addBook(book);
       onCancel();
     } catch (error) {
