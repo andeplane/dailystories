@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Progress, Typography, Card, Image, Divider } from 'antd';
+import { Modal, Progress, Typography, Card, Image } from 'antd';
 import type { BookSettings } from '../utils/BookGenerator';
 import { BookGenerator } from '../utils/BookGenerator';
 import { useBooks } from '../contexts/BookContext';
@@ -50,10 +50,10 @@ const BookGenerationModal: React.FC<BookGenerationModalProps> = ({
   const generationAttempted = React.useRef(false);
   const [timeRemaining, setTimeRemaining] = React.useState(0);
 
-  const calculateEstimatedTime = () => {
+  const calculateEstimatedTime = React.useCallback(() => {
     const remainingPages = settings.numPages - state.pagesGenerated;
     return remainingPages * 30;
-  };
+  }, [settings.numPages, state.pagesGenerated]);
 
   React.useEffect(() => {
     if (isGenerating) {
@@ -71,13 +71,13 @@ const BookGenerationModal: React.FC<BookGenerationModalProps> = ({
 
       return () => clearInterval(timer);
     }
-  }, [isGenerating, state.pagesGenerated, settings.numPages]);
+  }, [isGenerating, state.pagesGenerated, settings.numPages, calculateEstimatedTime]);
 
   React.useEffect(() => {
     if (isGenerating) {
       setTimeRemaining(calculateEstimatedTime());
     }
-  }, [state.pagesGenerated]);
+  }, [state.pagesGenerated, calculateEstimatedTime, isGenerating]);
 
   const generateBook = React.useCallback(async () => {
     if (generationAttempted.current) return;

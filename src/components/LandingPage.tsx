@@ -32,10 +32,6 @@ const LandingPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleModalCancel = () => {
-    setIsModalOpen(false);
-  };
-
   const handleModalSubmit = (settings: BookSettings) => {
     setIsModalOpen(false);
     // TODO: Initialize BookGenerator with settings and start generation
