@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/dailystories/static/css/main.dd1ea7b7.css",
+    "main.js": "/dailystories/static/js/main.272afac2.js",
+    "index.html": "/dailystories/index.html",
+    "main.dd1ea7b7.css.map": "/dailystories/static/css/main.dd1ea7b7.css.map",
+    "main.272afac2.js.map": "/dailystories/static/js/main.272afac2.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.dd1ea7b7.css",
+    "static/js/main.272afac2.js"
+  ]
+}
