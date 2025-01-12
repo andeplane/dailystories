@@ -94,7 +94,7 @@ const LandingPage: React.FC = () => {
           </Col>
         ))}
 
-        {/* Plus Card for Creating a New Book */}
+        {/* Generate New Story Card */}
         <Col
           xs={24}
           sm={24}
@@ -115,10 +115,11 @@ const LandingPage: React.FC = () => {
           >
             <Button
               type="dashed"
-              shape="circle"
+              icon={<PlusOutlined />}
               size="large"
-              icon={<PlusOutlined style={{ fontSize: '24px' }} />}
-            />
+            >
+              Generate New Story
+            </Button>
           </Card>
         </Col>
       </Row>
