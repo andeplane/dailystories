@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Book } from '../types/Book';
 import { openDB } from 'idb';
-import { books as booksData } from '../data/books';
+// import { books as booksData } from '../data/books';
 
 interface BookContextType {
   books: Book[];
@@ -30,7 +30,8 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const loadBooks = async () => {
       const db = await initDB();
       const allBooks = await db.getAll('books');
-      setBooks([...booksData, ...allBooks]);
+      setBooks(allBooks);
+    //   setBooks([...booksData, ...allBooks]);
     };
     loadBooks();
   }, []);
@@ -50,8 +51,7 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const getBook = async (id: string) => {
     const db = await initDB();
     const dbBook = await db.get('books', id);
-    const dataBook = booksData.find(book => book.id === id);
-    return dbBook || dataBook;
+    return dbBook;
   };
 
   const deleteBook = async (id: string) => {
