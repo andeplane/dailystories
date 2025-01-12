@@ -4,7 +4,27 @@ import mixpanel from "mixpanel-browser";
 // Initialize mixpanel
 mixpanel.init("dd4ba7a15b815dbd1ba0694aea50eab9");
 
+// Generate or retrieve user ID
+const getUserId = () => {
+  const storageKey = "user_id";
+  let userId = localStorage.getItem(storageKey);
+
+  if (!userId) {
+    userId = crypto.randomUUID();
+    localStorage.setItem(storageKey, userId);
+  }
+
+  return userId;
+};
+
+// Identify user on initialization
+const userId = getUserId();
+mixpanel.identify(userId);
+
 export const MixpanelService = {
+  // Add method to get current user ID
+  getCurrentUserId: () => getUserId(),
+
   trackNewBookClick: () => {
     mixpanel.track("NewStory.Clicked");
   },
