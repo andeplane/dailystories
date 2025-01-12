@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
 import 'antd/dist/reset.css';
 import ScrollableBookViewer from './components/ScrollableBookViewer';
-import { BrowserRouter as Router, Routes, Route, BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { BookProvider, useBooks } from './contexts/BookContext';
 import { Book } from './types/Book';
 
@@ -27,12 +27,10 @@ const App: React.FC = () => {
   return (
     <BookProvider>
       <BrowserRouter basename={process.env.PUBLIC_URL}>
-        <Router>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/book/:id" element={<BookRoute />} />
-          </Routes>
-        </Router>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/book/:id" element={<BookRoute />} />
+        </Routes>
       </BrowserRouter>
     </BookProvider>
   );
