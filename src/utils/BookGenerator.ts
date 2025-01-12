@@ -2,6 +2,14 @@
 
 import { OpenAIService } from "./OpenAIService";
 import { Page } from "../types/Book";
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+interface OpenAIError extends Error {
+  status?: number;
+  message: string;
+}
+
 export interface BookSettings {
   title: string;
   childName: string;
@@ -24,6 +32,12 @@ export interface BookSettings {
   };
   openAIApiKey: string;
 }
+
+const formatTime = (ms: number): string => {
+  const seconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(seconds / 60);
+  return minutes > 0 ? `${minutes}m ${seconds % 60}s` : `${seconds}s`;
+};
 
 export class BookGenerator {
   private openai: OpenAIService;
@@ -238,118 +252,232 @@ ${storySoFar}`;
     return summary;
   }
 
-  async generateBook(onProgress: (progress: number, message: string) => void) {
-    onProgress(10, "Generating story outline...");
+  async generateCoverImage(storyOutline: string): Promise<string> {
+    console.log("Generating cover image...");
+
+    // Get full story text and generate a summary
+    const storySummary = await this.openai.generateCompletion(
+      `Generate a summary of the story: ${storyOutline}`,
+      this.bookSettings.models.generationModel,
+      1000,
+      `You will generate a summary of a story to be used as an image prompt for a cover image. 
+      The model in use will be dall-e-3. The summary should be a single paragraph that captures 
+      the essence of the story.`
+    );
+
+    // Create the cover image prompt
+    let coverImagePrompt = `Generate a cover image for the children's book titled "${this.bookSettings.title}".
+    Style requirements:
+    - Generate image as a book cover, including the book itself
+    - Illustration style: ${this.bookSettings.illustrationStyle}
+    - Make it colorful and appealing to a ${this.bookSettings.childAge}-year-old child
+    - Should be eye-catching and suitable for a book cover
+    - Include visual elements that represent key themes from the story
+    - Text should be clear and readable
+    Story summary: ${storySummary}`;
+
+    // Cap to 1000 characters
+    coverImagePrompt = coverImagePrompt.slice(0, 1000);
+
+    const imageBuffer = await this.openai.generateImage(
+      coverImagePrompt,
+      "1792x1024"
+    );
+    const imageBase64 = imageBuffer.toString("base64");
+    console.log("Cover image generated as Base64 string.");
+    return imageBase64;
+  }
+
+  async generateBook(
+    onProgress: (progress: number, message: string) => void,
+    onOutline?: (outline: string) => void,
+    onPageUpdate?: (text: string, image: string | null) => void,
+    onCoverGenerated?: (coverImage: string) => void
+  ) {
+    const startTime = Date.now();
+    const pageTimings: { pageNum: number; duration: number }[] = [];
+
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 1000;
+
+    onProgress(5, "Generating story outline...");
     const storyOutline = await this.generateStoryOutline();
+    onOutline?.(storyOutline);
+
+    // Generate cover image right after outline
+    onProgress(15, "Creating cover image...");
+    const coverImageBase64 = await this.generateCoverImage(storyOutline);
+    onCoverGenerated?.(coverImageBase64);
+
     let storyHasFinished = false;
     let pageNumber = 1;
     let storySoFar = "";
     let storySummary = "";
 
+    // Generate all story pages first
     while (!storyHasFinished && pageNumber <= this.bookSettings.numPages) {
+      const pageStartTime = Date.now();
+
       console.log(
         `\n--- Generating Page ${pageNumber} of ${this.bookSettings.numPages} ---`
       );
-      onProgress(
-        10 + ((pageNumber - 1) / this.bookSettings.numPages) * 90,
-        `Generating page ${pageNumber} of ${this.bookSettings.numPages}`
-      );
-      try {
-        // Generate the next section
-        let currentSection = await this.generateNextPage(
-          storyOutline,
-          storySoFar,
-          pageNumber
-        );
-        console.log(`Page ${pageNumber} text generated.`);
+      const baseProgress =
+        10 + ((pageNumber - 1) / this.bookSettings.numPages) * 90;
 
-        // Get feedback for the current section
-        let feedback = await this.getFeedbackForPage(
-          storyOutline,
-          storySoFar,
-          currentSection
-        );
+      let retryCount = 0;
+      let success = false;
 
-        // Iterate if feedback is not OK
-        let iterations = 0;
-        while (feedback.toLowerCase() !== "ok" && iterations < 10) {
-          console.log(
-            `Got feedback ${
-              iterations + 1
-            } for page ${pageNumber}. Attempting to revise...`
+      while (retryCount < MAX_RETRIES && !success) {
+        try {
+          onProgress(
+            baseProgress,
+            retryCount > 0
+              ? `Retrying page ${pageNumber} (attempt ${retryCount + 1})...`
+              : `Generating page ${pageNumber} of ${this.bookSettings.numPages}`
           );
-          currentSection = await this.generateNextPage(
+
+          // Generate the next section
+          let currentSection = await this.generateNextPage(
             storyOutline,
             storySoFar,
-            pageNumber,
-            feedback
+            pageNumber
           );
-          console.log(`Page ${pageNumber} revised.`);
-          feedback = await this.getFeedbackForPage(
+
+          onPageUpdate?.(currentSection, null);
+
+          onProgress(
+            baseProgress + 30 / this.bookSettings.numPages,
+            `Getting feedback for page ${pageNumber}...`
+          );
+
+          // Get feedback for the current section
+          let feedback = await this.getFeedbackForPage(
             storyOutline,
             storySoFar,
             currentSection
           );
-          iterations += 1;
-        }
 
-        if (feedback.toLowerCase() !== "ok") {
-          console.log(
-            `Failed to generate a satisfactory section after ${iterations} attempts. Ending story.`
+          // Iterate if feedback is not OK
+          let iterations = 0;
+          while (feedback.toLowerCase() !== "ok" && iterations < 10) {
+            onProgress(
+              baseProgress + 30 / this.bookSettings.numPages,
+              `Revising page ${pageNumber} based on feedback (attempt ${
+                iterations + 1
+              })...`
+            );
+
+            currentSection = await this.generateNextPage(
+              storyOutline,
+              storySoFar,
+              pageNumber,
+              feedback
+            );
+
+            onProgress(
+              baseProgress + 45 / this.bookSettings.numPages,
+              `Getting feedback for revision of page ${pageNumber}...`
+            );
+
+            feedback = await this.getFeedbackForPage(
+              storyOutline,
+              storySoFar,
+              currentSection
+            );
+            iterations += 1;
+          }
+
+          // Generate illustration
+          onProgress(
+            baseProgress + 60 / this.bookSettings.numPages,
+            `Generating illustration for page ${pageNumber}`
           );
-          break;
-        } else {
-          console.log(
-            `Page ${pageNumber} approved after ${iterations} ${
-              iterations === 1 ? "iteration" : "iterations"
-            }.`
+
+          const illustrationBase64 = await this.generateIllustrationForPage(
+            pageNumber,
+            storySummary,
+            currentSection
           );
-        }
 
-        // Check if the section indicates the end of the story
-        if (/the end/i.test(currentSection)) {
+          // Update the UI with both text and image
+          onPageUpdate?.(currentSection, illustrationBase64);
+
+          // Add the section to the pages array
+          this.pages.push({
+            text: currentSection,
+            illustrationBase64: illustrationBase64,
+          });
+
+          // Update story state
+          storySoFar += `\n${currentSection}`;
+          storySummary = await this.summarizeStory(storySoFar);
+
+          if (/the end/i.test(currentSection)) {
+            storyHasFinished = true;
+          }
+
+          const pageDuration = Date.now() - pageStartTime;
+          pageTimings.push({ pageNum: pageNumber, duration: pageDuration });
           console.log(
-            `"The end" detected in page ${pageNumber}. Ending story.`
+            `Page ${pageNumber} generated in ${formatTime(pageDuration)}`
           );
-          storyHasFinished = true;
+
+          success = true;
+          pageNumber += 1;
+        } catch (error) {
+          const openAIError = error as OpenAIError;
+          console.error(
+            `Error on page ${pageNumber} (attempt ${retryCount + 1}):`,
+            openAIError
+          );
+
+          if (openAIError.status === 400 && retryCount < MAX_RETRIES - 1) {
+            retryCount++;
+            onProgress(
+              baseProgress,
+              `Safety system triggered. Retrying with different phrasing (attempt ${
+                retryCount + 1
+              })...`
+            );
+            await delay(RETRY_DELAY);
+            continue;
+          }
+
+          // If we've exhausted retries or it's a different error, throw it
+          onProgress(
+            baseProgress,
+            `Error generating page ${pageNumber}. Please try again.`
+          );
+          throw error;
         }
+      }
 
-        // Generate or update the story summary
-        storySummary = await this.summarizeStory(
-          storySoFar + "\n" + currentSection
-        );
-
-        // Update storySoFar
-        storySoFar += `\n${currentSection}`;
-
-        onProgress(
-          10 + ((pageNumber - 0.5) / this.bookSettings.numPages) * 90,
-          `Generating illustration for page ${pageNumber}`
-        );
-        // Generate illustration for the section
-        const illustrationBase64 = await this.generateIllustrationForPage(
-          pageNumber,
-          storySummary,
-          currentSection
-        );
-
-        // Add the section to the sections array with illustrationBase64
-        this.pages.push({
-          text: currentSection,
-          illustrationBase64: illustrationBase64,
-        });
-
-        console.log(`Page ${pageNumber} completed.\n`);
-        pageNumber += 1;
-      } catch (error) {
-        console.error(`Error generating page ${pageNumber}:`, error);
+      if (!success) {
         break;
       }
     }
 
+    // Final progress update
+    const totalDuration = Date.now() - startTime;
+    console.log("\n--- Book Generation Summary ---");
+    console.log(`Total time: ${formatTime(totalDuration)}`);
+    console.log("Page-by-page timing:");
+    pageTimings.forEach(({ pageNum, duration }) => {
+      console.log(`Page ${pageNum}: ${formatTime(duration)}`);
+    });
+    console.log(
+      `Average time per page: ${formatTime(
+        pageTimings.reduce((acc, curr) => acc + curr.duration, 0) /
+          pageTimings.length
+      )}`
+    );
+
+    onProgress(100, "Book generation complete!");
+
     return {
       id: this.bookSettings.title,
       title: this.bookSettings.title,
+      coverImageBase64: coverImageBase64,
       pages: this.pages,
     };
   }

@@ -57,14 +57,14 @@ export class OpenAIService {
 
   async generateImage(
     prompt: string,
-    size: string = "512x512"
+    size: "1024x1024" | "1792x1024" | "1024x1792" = "1024x1024"
   ): Promise<Buffer> {
     try {
       const response = await this.openai.images.generate({
         prompt: prompt,
         model: "dall-e-3",
         n: 1,
-        size: "1024x1024",
+        size,
         response_format: "b64_json",
       });
       const imageData = response.data[0].b64_json;

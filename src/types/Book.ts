@@ -10,4 +10,5 @@ export interface Book {
 export interface Page {
   text: string;
   illustrationBase64: string;
+  isCover?: boolean;
 }

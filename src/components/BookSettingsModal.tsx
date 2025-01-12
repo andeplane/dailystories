@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal, Form, Input, InputNumber, Select, Divider, Button, message } from 'antd';
 import type { BookSettings } from '../utils/BookGenerator';
 import { OpenAIService } from '../utils/OpenAIService';
+import BookGenerationModal from './BookGenerationModal';
 const { TextArea } = Input;
 
 interface BookSettingsModalProps {
@@ -27,6 +28,11 @@ const BookSettingsModal: React.FC<BookSettingsModalProps> = ({ open, onCancel, o
   const [form] = Form.useForm();
   const [isSuggestLoading, setIsSuggestLoading] = useState(false);
   const [canSuggest, setCanSuggest] = useState(false);
+  const [showGenerationModal, setShowGenerationModal] = useState(false);
+  const [generationSettings, setGenerationSettings] = useState<BookSettings | null>(null);
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [estimatedTime, setEstimatedTime] = useState<number>(0);
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
 
   // Load saved preferences when modal opens
   useEffect(() => {
@@ -34,8 +40,11 @@ const BookSettingsModal: React.FC<BookSettingsModalProps> = ({ open, onCancel, o
     if (savedPreferences) {
       const preferences = JSON.parse(savedPreferences);
       form.setFieldsValue(preferences);
+      // Check fields after setting values
+      const values = form.getFieldsValue();
+      setCanSuggest(Boolean(values.childName && values.childAge && apiKey));
     }
-  }, [form, open]);
+  }, [form, open, apiKey]);
 
   // Save preferences on field changes
   const handleFieldChange = () => {
@@ -54,7 +63,7 @@ const BookSettingsModal: React.FC<BookSettingsModalProps> = ({ open, onCancel, o
 
   const handleOk = () => {
     form.validateFields().then((values) => {
-      // Save preferences to localStorage (excluding API key)
+      // Save preferences to localStorage (excluding storylineInstructions)
       const preferencesToSave = {
         childName: values.childName,
         childAge: values.childAge,
@@ -63,11 +72,10 @@ const BookSettingsModal: React.FC<BookSettingsModalProps> = ({ open, onCancel, o
         language: values.language,
         illustrationStyle: values.illustrationStyle,
         numPages: values.numPages,
-        storylineInstructions: values.storylineInstructions,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(preferencesToSave));
 
-      onSubmit({
+      const settings: BookSettings = {
         ...values,
         childPreferences: {
           interests: values.interests?.split(',').map((i: string) => i.trim()),
@@ -77,8 +85,12 @@ const BookSettingsModal: React.FC<BookSettingsModalProps> = ({ open, onCancel, o
           outlineModel: 'gpt-4o-mini',
           generationModel: 'gpt-4o-mini',
           feedbackModel: 'gpt-4o-mini',
-        }
-      });
+        },
+        openAIApiKey: apiKey
+      };
+
+      setGenerationSettings(settings);
+      setShowGenerationModal(true);
     });
   };
 
@@ -129,15 +141,26 @@ const BookSettingsModal: React.FC<BookSettingsModalProps> = ({ open, onCancel, o
 
       try {
         const cleanResponse = extractJSON(response);
-        console.log('Cleaned response:', cleanResponse);
         const suggestion = JSON.parse(cleanResponse);
-        console.log('Parsed suggestion:', suggestion);
         
         form.setFieldsValue({
           title: suggestion.title,
           bookTheme: suggestion.theme,
           storylineInstructions: suggestion.storyline
         });
+        
+        const allValues = form.getFieldsValue();
+        const valid = Boolean(
+          allValues.title &&
+          allValues.bookTheme &&
+          allValues.storylineInstructions &&
+          allValues.childName &&
+          allValues.childAge &&
+          allValues.language &&
+          allValues.illustrationStyle &&
+          allValues.numPages
+        );
+        setIsFormValid(valid);
         
         message.success('Story suggestion generated successfully!');
       } catch (parseError) {
@@ -166,154 +189,212 @@ const BookSettingsModal: React.FC<BookSettingsModalProps> = ({ open, onCancel, o
     checkFields();
   }, [form, apiKey]);
 
+  const handleModalClose = () => {
+    setShowGenerationModal(false);
+    setGenerationSettings(null);
+    onCancel();
+  };
+
+  const handleValuesChange = (changedValues: any, allValues: any) => {
+    handleFieldChange();
+    setCanSuggest(Boolean(allValues.childName && allValues.childAge && apiKey));
+    
+    // Use allValues parameter instead of getting values again
+    const valid = Boolean(
+      allValues.title &&
+      allValues.bookTheme &&
+      allValues.storylineInstructions &&
+      allValues.childName &&
+      allValues.childAge &&
+      allValues.language &&
+      allValues.illustrationStyle &&
+      allValues.numPages
+    );
+    
+    console.log('Form validity check:', { allValues, valid }); // Add this for debugging
+    setIsFormValid(valid);
+  };
+
+  // Add this effect to handle the timer
+  useEffect(() => {
+    if (showGenerationModal && generationSettings) {
+      const totalEstimatedSeconds = generationSettings.numPages * 30;
+      setEstimatedTime(totalEstimatedSeconds);
+      
+      const timer = setInterval(() => {
+        setElapsedTime(prev => {
+          if (prev >= totalEstimatedSeconds) {
+            clearInterval(timer);
+            return totalEstimatedSeconds;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+
+      return () => {
+        clearInterval(timer);
+        setElapsedTime(0);
+      };
+    }
+  }, [showGenerationModal, generationSettings]);
+
   return (
-    <Modal
-      title="Generate New Story"
-      open={open}
-      onOk={handleOk}
-      onCancel={onCancel}
-      width={600}
-    >
-      <Form
-        form={form}
-        layout="vertical"
-        onValuesChange={() => {
-          handleFieldChange();
-          const values = form.getFieldsValue();
-          setCanSuggest(Boolean(values.childName && values.childAge && apiKey));
-        }}
+    <>
+      <Modal
+        title="Generate New Story"
+        open={open && !showGenerationModal}
+        onOk={handleOk}
+        onCancel={onCancel}
+        width={600}
+        okButtonProps={{ disabled: !isFormValid }}
       >
-        <div style={{ marginBottom: '24px', textAlign: 'right' }}>
-          <Button 
-            onClick={handleSuggest}
-            type="default"
-            style={{ marginBottom: '16px' }}
-            loading={isSuggestLoading}
-            disabled={isSuggestLoading || !canSuggest}
-            title={!canSuggest ? "Fill in information about your child to suggest story" : ""}
-          >
-            {isSuggestLoading ? 'Generating Suggestion...' : 'Suggest Story'}
-          </Button>
-        </div>
+        <Form
+          form={form}
+          layout="vertical"
+          onValuesChange={handleValuesChange}
+        >
+          <div style={{ marginBottom: '24px', textAlign: 'right' }}>
+            <Button 
+              onClick={handleSuggest}
+              type="default"
+              style={{ marginBottom: '16px' }}
+              loading={isSuggestLoading}
+              disabled={isSuggestLoading || !canSuggest}
+              title={!canSuggest ? "Fill in information about your child to suggest story" : ""}
+            >
+              {isSuggestLoading ? 'Generating Suggestion...' : 'Suggest Story'}
+            </Button>
+          </div>
 
-        <Divider orientation="left">Story Details</Divider>
-        <div>
-          <Form.Item
-            name="title"
-            label="Story Title"
-            rules={[{ required: true }]}
-          >
-            <Input />
-          </Form.Item>
+          <Divider orientation="left">Story Details</Divider>
+          <div>
+            <Form.Item
+              name="title"
+              label="Story Title"
+              rules={[{ required: true }]}
+            >
+              <Input placeholder="e.g., Sarah's Magical Adventure" />
+            </Form.Item>
 
-          <Form.Item
-            name="bookTheme"
-            label="Book Theme"
-            rules={[{ required: true }]}
-          >
-            <Input placeholder="e.g., Adventure in space" />
-          </Form.Item>
+            <Form.Item
+              name="bookTheme"
+              label="Book Theme"
+              rules={[{ required: true }]}
+            >
+              <Input placeholder="e.g., Adventure in space" />
+            </Form.Item>
 
-          <Form.Item
-            name="storylineInstructions"
-            label="Quick summary of the story"
-            rules={[{ required: true }]}
-          >
-            <TextArea 
-              rows={3}
-              placeholder="e.g., A magical adventure where the child learns about friendship" 
-            />
-          </Form.Item>
-        </div>
+            <Form.Item
+              name="storylineInstructions"
+              label="Quick summary of the story"
+              rules={[{ required: true }]}
+            >
+              <TextArea 
+                rows={3}
+                placeholder="e.g., A magical adventure where the child learns about friendship" 
+              />
+            </Form.Item>
+          </div>
 
-        <Divider orientation="left">Child's Information</Divider>
-        <div>
-          <Form.Item
-            name="childName"
-            label="Child's Name"
-            rules={[{ required: true }]}
-          >
-            <Input />
-          </Form.Item>
+          <Divider orientation="left">Child's Information</Divider>
+          <div>
+            <Form.Item
+              name="childName"
+              label="Child's Name"
+              rules={[{ required: true }]}
+            >
+              <Input />
+            </Form.Item>
 
-          <Form.Item
-            name="childAge"
-            label="Child's Age"
-            rules={[{ required: true }]}
-          >
-            <InputNumber min={1} max={12} />
-          </Form.Item>
+            <Form.Item
+              name="childAge"
+              label="Child's Age"
+              rules={[{ required: true }]}
+            >
+              <InputNumber min={1} max={12} />
+            </Form.Item>
 
-          <Form.Item
-            name="interests"
-            label="Interests (comma-separated)"
-          >
-            <Input placeholder="e.g., dinosaurs, space, princesses" />
-          </Form.Item>
+            <Form.Item
+              name="interests"
+              label="Interests (comma-separated)"
+            >
+              <Input placeholder="e.g., dinosaurs, space, princesses" />
+            </Form.Item>
 
-          <Form.Item
-            name="colors"
-            label="Favorite Colors (comma-separated)"
-          >
-            <Input placeholder="e.g., blue, red, green" />
-          </Form.Item>
-        </div>
+            <Form.Item
+              name="colors"
+              label="Favorite Colors (comma-separated)"
+            >
+              <Input placeholder="e.g., blue, red, green" />
+            </Form.Item>
+          </div>
 
-        <Divider orientation="left">Book Settings</Divider>
-        <div>
-          <Form.Item
-            name="language"
-            label="Language"
-            rules={[{ required: true }]}
-            initialValue="English"
-          >
-            <Select>
-              <Select.Option value="English">English</Select.Option>
-              <Select.Option value="Norwegian">Norwegian</Select.Option>
-              <Select.Option value="Spanish">Spanish</Select.Option>
-              <Select.Option value="French">French</Select.Option>
-              <Select.Option value="German">German</Select.Option>
-              <Select.Option value="Italian">Italian</Select.Option>
-              <Select.Option value="Portuguese">Portuguese</Select.Option>
-              <Select.Option value="Dutch">Dutch</Select.Option>
-              <Select.Option value="Swedish">Swedish</Select.Option>
-              <Select.Option value="Danish">Danish</Select.Option>
-              <Select.Option value="Finnish">Finnish</Select.Option>
-              <Select.Option value="Japanese">Japanese</Select.Option>
-              <Select.Option value="Chinese">Chinese</Select.Option>
-              <Select.Option value="Korean">Korean</Select.Option>
-              <Select.Option value="Russian">Russian</Select.Option>
-            </Select>
-          </Form.Item>
+          <Divider orientation="left">Book Settings</Divider>
+          <div>
+            <Form.Item
+              name="language"
+              label="Language"
+              rules={[{ required: true }]}
+              initialValue="English"
+            >
+              <Select>
+                <Select.Option value="English">English</Select.Option>
+                <Select.Option value="Norwegian">Norwegian</Select.Option>
+                <Select.Option value="Spanish">Spanish</Select.Option>
+                <Select.Option value="French">French</Select.Option>
+                <Select.Option value="German">German</Select.Option>
+                <Select.Option value="Italian">Italian</Select.Option>
+                <Select.Option value="Portuguese">Portuguese</Select.Option>
+                <Select.Option value="Dutch">Dutch</Select.Option>
+                <Select.Option value="Swedish">Swedish</Select.Option>
+                <Select.Option value="Danish">Danish</Select.Option>
+                <Select.Option value="Finnish">Finnish</Select.Option>
+                <Select.Option value="Japanese">Japanese</Select.Option>
+                <Select.Option value="Chinese">Chinese</Select.Option>
+                <Select.Option value="Korean">Korean</Select.Option>
+                <Select.Option value="Russian">Russian</Select.Option>
+              </Select>
+            </Form.Item>
 
-          <Form.Item
-            name="illustrationStyle"
-            label="Illustration Style"
-            rules={[{ required: true }]}
-            initialValue="Fantasy"
-          >
-            <Select>
-              <Select.Option value="Fantasy">Fantasy</Select.Option>
-              <Select.Option value="Disney">Disney</Select.Option>
-              <Select.Option value="Cartoon">Cartoon</Select.Option>
-              <Select.Option value="Drawing">Drawing</Select.Option>
-              <Select.Option value="Pixar">Pixar</Select.Option>
-              <Select.Option value="Anime">Anime</Select.Option>
-              <Select.Option value="Watercolor">Watercolor</Select.Option>
-            </Select>
-          </Form.Item>
+            <Form.Item
+              name="illustrationStyle"
+              label="Illustration Style"
+              rules={[{ required: true }]}
+              initialValue="Fantasy"
+            >
+              <Select>
+                <Select.Option value="Fantasy">Fantasy</Select.Option>
+                <Select.Option value="Disney">Disney</Select.Option>
+                <Select.Option value="Cartoon">Cartoon</Select.Option>
+                <Select.Option value="Drawing">Drawing</Select.Option>
+                <Select.Option value="Pixar">Pixar</Select.Option>
+                <Select.Option value="Anime">Anime</Select.Option>
+                <Select.Option value="Watercolor">Watercolor</Select.Option>
+              </Select>
+            </Form.Item>
 
-          <Form.Item
-            name="numPages"
-            label="Number of Pages"
-            rules={[{ required: true }]}
-            initialValue={5}
-          >
-            <InputNumber min={3} max={10} />
-          </Form.Item>
-        </div>
-      </Form>
-    </Modal>
+            <Form.Item
+              name="numPages"
+              label="Number of Pages"
+              rules={[{ required: true, message: 'Please select between 3-10 pages' }]}
+              initialValue={5}
+            >
+              <InputNumber min={3} max={10} />
+            </Form.Item>
+          </div>
+        </Form>
+      </Modal>
+      
+      {showGenerationModal && generationSettings && (
+        <BookGenerationModal
+          open={showGenerationModal}
+          onCancel={handleModalClose}
+          settings={generationSettings}
+          estimatedTime={estimatedTime}
+          elapsedTime={elapsedTime}
+        />
+      )}
+    </>
   );
 };
 
