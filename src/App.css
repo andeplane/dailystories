@@ -1,0 +1,99 @@
+/* src/App.css */
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+}
+
+.form-container {
+  background-color: #fff;
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-container h2 {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.form-container form label {
+  display: block;
+  margin-bottom: 15px;
+}
+
+.form-container form label input,
+.form-container form label textarea,
+.form-container form label select {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  box-sizing: border-box;
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.button-group button {
+  padding: 10px 20px;
+  border: none;
+  background-color: #4caf50;
+  color: white;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.button-group button:hover {
+  background-color: #45a049;
+}
+
+.character-section {
+  border: 1px solid #ddd;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+}
+
+.character-section h4 {
+  margin-top: 0;
+}
+
+.review-section {
+  margin-bottom: 20px;
+}
+
+.review-section h3 {
+  margin-bottom: 10px;
+}
+
+.review-section p {
+  margin: 5px 0;
+}
+
+button[type="button"] {
+  background-color: #008cba;
+}
+
+button[type="button"]:hover {
+  background-color: #007bb5;
+}
+
+button[type="submit"] {
+  background-color: #4caf50;
+}
+
+button[type="submit"]:hover {
+  background-color: #45a049;
+}
+
+hr {
+  border: 0;
+  height: 1px;
+  background: #ddd;
+  margin: 10px 0;
+}
