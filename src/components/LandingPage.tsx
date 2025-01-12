@@ -98,6 +98,39 @@ const LandingPage: React.FC = () => {
       </Row>
 
       <Row gutter={[16, 16]}>
+        <Col
+          xs={24}
+          sm={24}
+          md={12}
+          lg={8}
+          xl={6}
+        >
+          <Card
+            hoverable={!!apiKey}
+            style={{
+              height: '100%',
+              cursor: apiKey ? 'pointer' : 'not-allowed',
+              opacity: apiKey ? 1 : 0.5,
+            }}
+            onClick={handleCreateNew}
+            cover={
+              <div
+                style={{
+                  height: '200px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor: '#f0f0f0',
+                }}
+              >
+                <PlusOutlined style={{ fontSize: '48px', color: '#999' }} />
+              </div>
+            }
+          >
+            <Meta title="Generate a new story" />
+          </Card>
+        </Col>
+
         {books.map((book: Book) => (
           <Col
             key={book.id}
@@ -156,38 +189,8 @@ const LandingPage: React.FC = () => {
             </Tooltip>
           </Col>
         ))}
-
-        {/* Generate New Story Card */}
-        <Col
-          xs={24}
-          sm={24}
-          md={12}
-          lg={8}
-          xl={6}
-        >
-          <Card
-            hoverable={!!apiKey}
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              height: '100%',
-              cursor: apiKey ? 'pointer' : 'not-allowed',
-              opacity: apiKey ? 1 : 0.5,
-            }}
-            onClick={handleCreateNew}
-          >
-            <Button
-              type="dashed"
-              icon={<PlusOutlined />}
-              size="large"
-              disabled={!apiKey}
-            >
-              Generate New Story
-            </Button>
-          </Card>
-        </Col>
       </Row>
+
       <BookSettingsModal 
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
