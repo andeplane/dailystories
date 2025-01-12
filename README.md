@@ -1,4 +1,4 @@
-# DailyStories - AI-Powered Children's Book Generator
+# Daily stories - AI-Powered Children's Book Generator
 
 DailyStories is a web application created by Anders Hafreager that allows users to generate personalized children's books using AI. Built with React and powered by OpenAI's API, it creates unique stories with custom illustrations based on user preferences.
 
