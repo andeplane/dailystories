@@ -1,46 +1,38 @@
-# Getting Started with Create React App
+# DailyStories - AI-Powered Children's Book Generator
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+DailyStories is a web application created by Anders Hafreager that allows users to generate personalized children's books using AI. Built with React and powered by OpenAI's API, it creates unique stories with custom illustrations based on user preferences.
 
-## Available Scripts
+Try it out at: [https://andeplane.github.io/dailystories](https://andeplane.github.io/dailystories)
 
-In the project directory, you can run:
+## Features
 
-### `npm start`
+- Generate custom children's books with AI
+- Specify book themes, length, and other settings
+- View generated books in an interactive reader
+- Save books locally using IndexedDB
+- Track analytics with Mixpanel integration
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Getting Started
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+1. Clone the repository
+2. Install dependencies with `npm install`
+3. Get an OpenAI API key from [OpenAI's website](https://openai.com)
+4. Start the development server with `npm start`
+5. Open [http://localhost:3000](http://localhost:3000) to view it in the browser
 
-### `npm test`
+## Development Requirements
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+To develop or contribute to DailyStories, you'll need:
 
-### `npm run build`
+- Node.js 18 or higher
+- An OpenAI API key with access to:
+  - GPT-4 for story generation
+  - DALL-E 3 for image generation
+- A Mixpanel account (optional, for analytics)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Environment Setup
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+1. Create a free account on [OpenAI's platform](https://platform.openai.com)
+2. Generate an API key with sufficient credits for development
+3. The API key can be entered directly in the application's UI
+4. For development without UI input, create a `.env` file with:
