@@ -19,8 +19,8 @@ const ScrollableBookViewer: React.FC<ScrollableBookViewerProps> = ({ book }) => 
   }, [book.id, book.title]);
 
   return (
-    <Card>
-      <Space direction="vertical" size="large" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
+    <Card style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
+      <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <Button 
           icon={<ArrowLeftOutlined />}
           onClick={() => navigate('/')}
@@ -36,7 +36,7 @@ const ScrollableBookViewer: React.FC<ScrollableBookViewerProps> = ({ book }) => 
               textAlign: 'justify',
               letterSpacing: '0.02em',
               lineHeight: '1.6',
-              maxWidth: '75%',
+              maxWidth: '800px',
               margin: '0 auto'
             }}
           >
@@ -45,7 +45,7 @@ const ScrollableBookViewer: React.FC<ScrollableBookViewerProps> = ({ book }) => 
         )}
         {book.pages.map((page, index) => (
           <Space key={index} direction="vertical" size="middle" style={{ width: '100%' }}>
-            <div style={{ width: '75%', margin: '0 auto' }}>
+            <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
               <Image
                 src={`data:image/png;base64,${page.illustrationBase64}`}
                 alt={`Illustration for section ${index + 1}`}
