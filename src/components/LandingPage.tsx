@@ -1,12 +1,12 @@
 // src/components/LandingPage.tsx
 import React, { useState } from 'react';
-import { Card, Row, Col, Button, Popconfirm, Tooltip, Input, Form } from 'antd';
+import { Card, Row, Col, Popconfirm, Tooltip, Input, Form } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { useBooks } from '../contexts/BookContext';
-import { Book } from '../types/Book';
-import BookSettingsModal from './BookSettingsModal';
-import { BookSettings } from '../utils/BookGenerator';
+import { useStories } from '../contexts/StoryContext';
+import { Story } from '../types/Story';
+import CreateStoryModal from './CreateStoryModal';
+import { StorySettings } from '../utils/StoryGenerator';
 import { MixpanelService } from '../utils/MixpanelService';
 
 const { Meta } = Card;
@@ -15,7 +15,7 @@ const OPENAI_KEY_STORAGE = 'openai_api_key';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
-  const { books, addBook, deleteBook } = useBooks();
+  const { stories, addStory, deleteStory } = useStories();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [apiKey, setApiKey] = useState<string>(() => {
     return localStorage.getItem(OPENAI_KEY_STORAGE) || '';
@@ -32,26 +32,26 @@ const LandingPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleModalSubmit = (settings: BookSettings) => {
+  const handleModalSubmit = (settings: StorySettings) => {
     setIsModalOpen(false);
     // TODO: Initialize BookGenerator with settings and start generation
-    addBook({
+    addStory({
       title: settings.title,
       summary: `A story about ${settings.bookTheme}`,
-      coverImageBase64: undefined,
+      coverImageBase64: '',
       pages: []
-    }).then(newBook => {
-      navigate(`/book/${newBook.id}`);
+    }).then(newStory => {
+      navigate(`/story/${newStory.id}`);
     });
   };
 
   const handleBookClick = (bookId: string) => {
-    navigate(`/book/${bookId}`);
+    navigate(`/story/${bookId}`);
   };
 
-  const handleDeleteBook = (e: React.MouseEvent, bookId: string) => {
+  const handleDeleteStory = (e: React.MouseEvent, storyId: string) => {
     e.stopPropagation(); // Prevent card click event
-    deleteBook(bookId);
+    deleteStory(storyId);
   };
 
   return (
@@ -131,24 +131,24 @@ const LandingPage: React.FC = () => {
           </Card>
         </Col>
 
-        {books.map((book: Book) => (
+        {stories.map((story: Story) => (
           <Col
-            key={book.id}
+            key={story.id}
             xs={24}
             sm={24}
             md={12}
             lg={8}
             xl={6}
           >
-            <Tooltip title={book.summary}>
+            <Tooltip title={story.summary}>
               <Card
                 hoverable
-                onClick={() => handleBookClick(book.id)}
+                onClick={() => handleBookClick(story.id)}
                 cover={
-                  book.coverImageBase64 ? (
+                  story.coverImageBase64 ? (
                     <img
-                      alt={book.title}
-                      src={`data:image/png;base64,${book.coverImageBase64}`}
+                      alt={story.title}
+                      src={`data:image/png;base64,${story.coverImageBase64}`}
                       style={{ objectFit: 'cover', height: '200px', width: '100%' }}
                     />
                   ) : (
@@ -169,11 +169,11 @@ const LandingPage: React.FC = () => {
                 <Meta
                   title={
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span>{book.title}</span>
+                      <span>{story.title}</span>
                       <Popconfirm
-                        title="Delete this book?"
+                        title="Delete this story?"
                         description="This action cannot be undone."
-                        onConfirm={(e) => handleDeleteBook(e as React.MouseEvent, book.id)}
+                        onConfirm={(e) => handleDeleteStory(e as React.MouseEvent, story.id)}
                         okText="Yes"
                         cancelText="No"
                       >
@@ -191,7 +191,7 @@ const LandingPage: React.FC = () => {
         ))}
       </Row>
 
-      <BookSettingsModal 
+      <CreateStoryModal 
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
         onSubmit={(settings) => {

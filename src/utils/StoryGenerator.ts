@@ -1,7 +1,7 @@
 // src/utils/BookGenerator.ts
 
 import { OpenAIService } from "./OpenAIService";
-import { Page } from "../types/Book";
+import { Page } from "../types/Story";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -10,7 +10,7 @@ interface OpenAIError extends Error {
   message: string;
 }
 
-export interface BookSettings {
+export interface StorySettings {
   title: string;
   childName: string;
   childAge: number;
@@ -39,17 +39,17 @@ const formatTime = (ms: number): string => {
   return minutes > 0 ? `${minutes}m ${seconds % 60}s` : `${seconds}s`;
 };
 
-export class BookGenerator {
+export class StoryGenerator {
   private openai: OpenAIService;
-  private bookSettings: BookSettings;
+  private storySettings: StorySettings;
   private pages: Page[] = [];
   private storyOutline: string = "";
   private storySoFar: string = "";
   private storySummary: string = "";
 
-  constructor(bookSettings: BookSettings) {
+  constructor(bookSettings: StorySettings) {
     this.openai = new OpenAIService(bookSettings.openAIApiKey);
-    this.bookSettings = bookSettings;
+    this.storySettings = bookSettings;
   }
 
   async generateStoryOutline() {
@@ -59,35 +59,35 @@ export class BookGenerator {
     const systemPrompt = `You are an assistant that creates detailed story outlines for children's books. Ensure the outline includes the beginning, middle, and end, and is appropriate for the child's age and interests. Write the outline entirely in the specified language without any additional formatting or headers.`;
 
     const prompt = `Create a detailed story outline for a children's book in **${
-      this.bookSettings.language
+      this.storySettings.language
     }** based on the following settings:
-- **Child's Name**: ${this.bookSettings.childName}
-- **Age**: ${this.bookSettings.childAge}
+- **Child's Name**: ${this.storySettings.childName}
+- **Age**: ${this.storySettings.childAge}
 - **Preferences**: Colors - ${
-      this.bookSettings.childPreferences.colors?.join(", ") || "None"
+      this.storySettings.childPreferences.colors?.join(", ") || "None"
     }, Interests - ${
-      this.bookSettings.childPreferences.interests?.join(", ") || "None"
+      this.storySettings.childPreferences.interests?.join(", ") || "None"
     }
 - **Other Characters**: ${
-      this.bookSettings.otherCharacters
+      this.storySettings.otherCharacters
         ?.map((c) => `${c.name}: ${c.description}`)
         .join("; ") || "None"
     }
-- **Theme**: ${this.bookSettings.bookTheme}
+- **Theme**: ${this.storySettings.bookTheme}
 - **Storyline Instructions**: ${
-      this.bookSettings.storylineInstructions || "None"
+      this.storySettings.storylineInstructions || "None"
     }
-- **Total Number of Pages**: ${this.bookSettings.numPages}
+- **Total Number of Pages**: ${this.storySettings.numPages}
 
 The outline should include the beginning, middle, and end of the story, ensuring it is appropriate for the child's age and interests. The pacing should be suitable for a book with **${
-      this.bookSettings.numPages
+      this.storySettings.numPages
     }** pages. Write the outline entirely in **${
-      this.bookSettings.language
+      this.storySettings.language
     }**.`;
 
     const outline = await this.openai.generateCompletion(
       prompt,
-      this.bookSettings.models.outlineModel,
+      this.storySettings.models.outlineModel,
       16384,
       systemPrompt // Pass the system prompt
     );
@@ -108,7 +108,7 @@ The outline should include the beginning, middle, and end of the story, ensuring
     // Define a system prompt for generating section text
     const systemPrompt = `You are an assistant that writes text for sections of a children's book. Ensure that each section contains only the narrative text without any headers, titles, or additional formatting. Write in the specified language and style, appropriate for the target age.`;
 
-    let prompt = `Generate section ${pageNumber} of a children's book in **${this.bookSettings.language}** based on the following settings:
+    let prompt = `Generate section ${pageNumber} of a children's book in **${this.storySettings.language}** based on the following settings:
 
 **Story Outline**:
 ${storyOutline}
@@ -116,7 +116,7 @@ ${storyOutline}
 **Story So Far**:
 ${storySoFar}
 
-Ensure the language is appropriate for a ${this.bookSettings.childAge}-year-old child.
+Ensure the language is appropriate for a ${this.storySettings.childAge}-year-old child.
 
 Only write the text for this section, no metadata or other text.
 `;
@@ -142,13 +142,13 @@ ${previousPageText}
     // Inform the model about the total number of sections and the current section
     prompt += `\n**Page Information**:
 - **Current Page**: ${pageNumber}
-- **Total Pages**: ${this.bookSettings.numPages} (if applicable)
+- **Total Pages**: ${this.storySettings.numPages} (if applicable)
 
 Ensure that the story progresses naturally towards the conclusion.`;
 
     const nextSection = await this.openai.generateCompletion(
       prompt,
-      this.bookSettings.models.generationModel,
+      this.storySettings.models.generationModel,
       16384,
       systemPrompt // Pass the system prompt
     );
@@ -166,7 +166,7 @@ Ensure that the story progresses naturally towards the conclusion.`;
     // Combine the story summary and current section text
     const combinedText = `Summary of the story so far: ${storySummary}\n\nCurrent page text: ${currentPageText}`;
 
-    const illustrationStylePrompt = `The illustration should be in the **${this.bookSettings.illustrationStyle}** style, colorful, and appealing to a ${this.bookSettings.childAge}-year-old child`;
+    const illustrationStylePrompt = `The illustration should be in the **${this.storySettings.illustrationStyle}** style, colorful, and appealing to a ${this.storySettings.childAge}-year-old child`;
 
     let prompt = `Generate an image for the current page of a children's book. Only generate image as the user cannot read.
 ${combinedText}
@@ -194,16 +194,16 @@ ${illustrationStylePrompt}`;
     const systemPrompt = `You are an assistant that provides constructive feedback on pages of a children's book. Ensure the feedback is clear, concise, and in the specified language. Do not include any additional text or formatting beyond the feedback.`;
 
     const prompt = `You are an assistant that provides feedback on a page of a children's book written in **${
-      this.bookSettings.language
+      this.storySettings.language
     }**.
 Ensure that:
 1. The page follows the overall story outline.
 2. The language is coherent and appropriate for the target age (${
-      this.bookSettings.childAge
+      this.storySettings.childAge
     }).
 3. The concepts are neither too simple nor too complicated.
 4. The page engages the child's interests: ${
-      this.bookSettings.childPreferences.interests?.join(", ") || "None"
+      this.storySettings.childPreferences.interests?.join(", ") || "None"
     }.
 5. The introduction of the story is engaging and appropriate
 6. There is some excitement in the story
@@ -219,12 +219,12 @@ ${previousText}
 ${currentPage}
 
 Provide constructive feedback and suggest improvements if necessary. If the page is good, respond with "OK". All responses should be in **${
-      this.bookSettings.language
+      this.storySettings.language
     }**.`;
 
     const feedback = await this.openai.generateCompletion(
       prompt,
-      this.bookSettings.models.feedbackModel,
+      this.storySettings.models.feedbackModel,
       16384,
       systemPrompt // Pass the system prompt
     );
@@ -238,13 +238,13 @@ Provide constructive feedback and suggest improvements if necessary. If the page
     // Define a system prompt for summarizing the story
     const systemPrompt = `You are an assistant that summarizes stories concisely in the specified language without adding any additional information or formatting.`;
 
-    const prompt = `Summarize the following story up to this point in **${this.bookSettings.language}** in a concise manner (maximum 200 words):
+    const prompt = `Summarize the following story up to this point in **${this.storySettings.language}** in a concise manner (maximum 200 words):
 
 ${storySoFar}`;
 
     const summary = await this.openai.generateCompletion(
       prompt,
-      this.bookSettings.models.generationModel,
+      this.storySettings.models.generationModel,
       500,
       systemPrompt // Pass the system prompt
     );
@@ -258,7 +258,7 @@ ${storySoFar}`;
     // Get full story text and generate a summary
     const storySummary = await this.openai.generateCompletion(
       `Generate a summary of the story: ${storyOutline}`,
-      this.bookSettings.models.generationModel,
+      this.storySettings.models.generationModel,
       1000,
       `You will generate a summary of a story to be used as an image prompt for a cover image. 
       The model in use will be dall-e-3. The summary should be a single paragraph that captures 
@@ -266,11 +266,11 @@ ${storySoFar}`;
     );
 
     // Create the cover image prompt
-    let coverImagePrompt = `Generate a cover image for the children's book titled "${this.bookSettings.title}".
+    let coverImagePrompt = `Generate a cover image for the children's book titled "${this.storySettings.title}".
     Style requirements:
     - Generate image as a book cover, including the book itself
-    - Illustration style: ${this.bookSettings.illustrationStyle}
-    - Make it colorful and appealing to a ${this.bookSettings.childAge}-year-old child
+    - Illustration style: ${this.storySettings.illustrationStyle}
+    - Make it colorful and appealing to a ${this.storySettings.childAge}-year-old child
     - Should be eye-catching and suitable for a book cover
     - Include visual elements that represent key themes from the story
     - Text should be clear and readable
@@ -288,7 +288,7 @@ ${storySoFar}`;
     return imageBase64;
   }
 
-  async generateBook(
+  async generateStory(
     onProgress: (progress: number, message: string) => void,
     onOutline?: (outline: string) => void,
     onPageUpdate?: (text: string, image: string | null) => void,
@@ -315,14 +315,14 @@ ${storySoFar}`;
     let storySummary = "";
 
     // Generate all story pages first
-    while (!storyHasFinished && pageNumber <= this.bookSettings.numPages) {
+    while (!storyHasFinished && pageNumber <= this.storySettings.numPages) {
       const pageStartTime = Date.now();
 
       console.log(
-        `\n--- Generating Page ${pageNumber} of ${this.bookSettings.numPages} ---`
+        `\n--- Generating Page ${pageNumber} of ${this.storySettings.numPages} ---`
       );
       const baseProgress =
-        10 + ((pageNumber - 1) / this.bookSettings.numPages) * 90;
+        10 + ((pageNumber - 1) / this.storySettings.numPages) * 90;
 
       let retryCount = 0;
       let success = false;
@@ -333,7 +333,7 @@ ${storySoFar}`;
             baseProgress,
             retryCount > 0
               ? `Retrying page ${pageNumber} (attempt ${retryCount + 1})...`
-              : `Generating page ${pageNumber} of ${this.bookSettings.numPages}`
+              : `Generating page ${pageNumber} of ${this.storySettings.numPages}`
           );
 
           // Generate the next section
@@ -346,7 +346,7 @@ ${storySoFar}`;
           onPageUpdate?.(currentSection, null);
 
           onProgress(
-            baseProgress + 30 / this.bookSettings.numPages,
+            baseProgress + 30 / this.storySettings.numPages,
             `Getting feedback for page ${pageNumber}...`
           );
 
@@ -361,7 +361,7 @@ ${storySoFar}`;
           let iterations = 0;
           while (feedback.toLowerCase() !== "ok" && iterations < 10) {
             onProgress(
-              baseProgress + 30 / this.bookSettings.numPages,
+              baseProgress + 30 / this.storySettings.numPages,
               `Revising page ${pageNumber} based on feedback (attempt ${
                 iterations + 1
               })...`
@@ -375,7 +375,7 @@ ${storySoFar}`;
             );
 
             onProgress(
-              baseProgress + 45 / this.bookSettings.numPages,
+              baseProgress + 45 / this.storySettings.numPages,
               `Getting feedback for revision of page ${pageNumber}...`
             );
 
@@ -389,7 +389,7 @@ ${storySoFar}`;
 
           // Generate illustration
           onProgress(
-            baseProgress + 60 / this.bookSettings.numPages,
+            baseProgress + 60 / this.storySettings.numPages,
             `Generating illustration for page ${pageNumber}`
           );
 
@@ -475,8 +475,8 @@ ${storySoFar}`;
     onProgress(100, "Book generation complete!");
 
     return {
-      id: this.bookSettings.title,
-      title: this.bookSettings.title,
+      id: this.storySettings.title,
+      title: this.storySettings.title,
       coverImageBase64: coverImageBase64,
       pages: this.pages,
     };

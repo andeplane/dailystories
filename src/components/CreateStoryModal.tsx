@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Form, Input, InputNumber, Select, Divider, Button, message } from 'antd';
-import type { BookSettings } from '../utils/BookGenerator';
+import type { StorySettings } from '../utils/StoryGenerator';
 import { OpenAIService } from '../utils/OpenAIService';
-import BookGenerationModal from './BookGenerationModal';
+import CreateStoryProgressModal from './CreateStoryProgressModal';
 import { MixpanelService } from '../utils/MixpanelService';
 const { TextArea } = Input;
 
-interface BookSettingsModalProps {
+interface CreateStoryModalProps {
   open: boolean;
   onCancel: () => void;
-  onSubmit: (settings: BookSettings) => void;
+  onSubmit: (settings: StorySettings) => void;
   apiKey: string;
 }
 
@@ -25,12 +25,12 @@ const extractJSON = (text: string): string => {
   return text;
 };
 
-const BookSettingsModal: React.FC<BookSettingsModalProps> = ({ open, onCancel, onSubmit, apiKey }) => {
+const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onSubmit, apiKey }) => {
   const [form] = Form.useForm();
   const [isSuggestLoading, setIsSuggestLoading] = useState(false);
   const [canSuggest, setCanSuggest] = useState(false);
   const [showGenerationModal, setShowGenerationModal] = useState(false);
-  const [generationSettings, setGenerationSettings] = useState<BookSettings | null>(null);
+  const [generationSettings, setGenerationSettings] = useState<StorySettings | null>(null);
   const [isFormValid, setIsFormValid] = useState(false);
   const [estimatedTime, setEstimatedTime] = useState<number>(0);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
@@ -79,7 +79,7 @@ const BookSettingsModal: React.FC<BookSettingsModalProps> = ({ open, onCancel, o
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(preferencesToSave));
 
-      const settings: BookSettings = {
+      const settings: StorySettings = {
         ...values,
         childPreferences: {
           interests: values.interests?.split(',').map((i: string) => i.trim()),
@@ -395,7 +395,7 @@ const BookSettingsModal: React.FC<BookSettingsModalProps> = ({ open, onCancel, o
       </Modal>
       
       {showGenerationModal && generationSettings && (
-        <BookGenerationModal
+        <CreateStoryProgressModal
           open={showGenerationModal}
           onCancel={handleModalClose}
           settings={generationSettings}
@@ -407,4 +407,4 @@ const BookSettingsModal: React.FC<BookSettingsModalProps> = ({ open, onCancel, o
   );
 };
 
-export default BookSettingsModal; 
+export default CreateStoryModal; 

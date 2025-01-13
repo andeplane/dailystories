@@ -3,36 +3,36 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
 import 'antd/dist/reset.css';
-import ScrollableBookViewer from './components/ScrollableBookViewer';
+import StoryViewer from './components/StoryViewer';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { BookProvider, useBooks } from './contexts/BookContext';
-import { Book } from './types/Book';
+import { StoryProvider, useStories } from './contexts/StoryContext';
+import { Story } from './types/Story';
 
-const BookRoute = () => {
+const StoryRoute = () => {
   const { id } = useParams();
-  const { getBook } = useBooks();
-  const [book, setBook] = useState<Book | undefined>();
+  const { getStory } = useStories();
+  const [story, setStory] = useState<Story | undefined>();
 
   useEffect(() => {
     if (id) {
-      getBook(id).then(setBook);
+      getStory(id).then(setStory);
     }
-  }, [id, getBook]);
+  }, [id, getStory]);
   
-  if (!book) return <div>Loading...</div>;
-  return <ScrollableBookViewer book={book} />;
+  if (!story) return <div>Loading...</div>;
+  return <StoryViewer story={story} />;
 };
 
 const App: React.FC = () => {
   return (
-    <BookProvider>
+    <StoryProvider>
       <BrowserRouter basename={process.env.PUBLIC_URL}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/book/:id" element={<BookRoute />} />
+          <Route path="/story/:id" element={<StoryRoute />} />
         </Routes>
       </BrowserRouter>
-    </BookProvider>
+    </StoryProvider>
   );
 };
 

@@ -1,22 +1,22 @@
 import React from 'react';
 import { Typography, Image, Space, Card, Button } from 'antd';
-import { Book } from '../types/Book';
+import { Story, Page } from '../types/Story';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { MixpanelService } from '../utils/MixpanelService';
 
 const { Title, Paragraph } = Typography;
 
-interface ScrollableBookViewerProps {
-  book: Book;
+interface StoryViewerProps {
+  story: Story;
 }
 
-const ScrollableBookViewer: React.FC<ScrollableBookViewerProps> = ({ book }) => {
+const StoryViewer: React.FC<StoryViewerProps> = ({ story }) => {
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    MixpanelService.trackBookRead(book.id, book.title);
-  }, [book.id, book.title]);
+    MixpanelService.trackBookRead(story.id, story.title);
+  }, [story.id, story.title]);
 
   return (
     <Card style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
@@ -28,8 +28,8 @@ const ScrollableBookViewer: React.FC<ScrollableBookViewerProps> = ({ book }) => 
         >
           Back to Main Menu
         </Button>
-        <Title level={2} style={{ fontSize: '2.5em', textAlign: 'center' }}>{book.title}</Title>
-        {book.summary && (
+        <Title level={2} style={{ fontSize: '2.5em', textAlign: 'center' }}>{story.title}</Title>
+        {story.summary && (
           <Paragraph 
             style={{ 
               fontSize: '1.5em',
@@ -40,16 +40,23 @@ const ScrollableBookViewer: React.FC<ScrollableBookViewerProps> = ({ book }) => 
               margin: '0 auto'
             }}
           >
-            {book.summary}
+            {story.summary}
           </Paragraph>
         )}
-        {book.pages.map((page, index) => (
+        {story.pages.map((page: Page, index: number) => (
           <Space key={index} direction="vertical" size="middle" style={{ width: '100%' }}>
-            <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
+            <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
               <Image
                 src={`data:image/png;base64,${page.illustrationBase64}`}
                 alt={`Illustration for section ${index + 1}`}
-                style={{ width: '100%', height: 'auto', display: 'block' }}
+                style={{ 
+                  width: '100}%',
+                  maxWidth: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  marginBottom: '2em'
+                }}
+                preview={false}
               />
               <Paragraph 
                 style={{ 
@@ -58,8 +65,7 @@ const ScrollableBookViewer: React.FC<ScrollableBookViewerProps> = ({ book }) => 
                   letterSpacing: '0.02em',
                   lineHeight: '1.6',
                   wordSpacing: '0.05em',
-                  hyphens: 'auto',
-                  marginTop: '1em'
+                  hyphens: 'auto'
                 }}
               >
                 {page.text}
@@ -72,4 +78,4 @@ const ScrollableBookViewer: React.FC<ScrollableBookViewerProps> = ({ book }) => 
   );
 };
 
-export default ScrollableBookViewer;
+export default StoryViewer;

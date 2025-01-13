@@ -1,16 +1,16 @@
 import React from 'react';
 import { Modal, Progress, Typography, Card, Image } from 'antd';
-import type { BookSettings } from '../utils/BookGenerator';
-import { BookGenerator } from '../utils/BookGenerator';
-import { useBooks } from '../contexts/BookContext';
+import type { StorySettings } from '../utils/StoryGenerator';
+import { StoryGenerator } from '../utils/StoryGenerator';
+import { useStories } from '../contexts/StoryContext';
 import { MixpanelService } from '../utils/MixpanelService';
 
 const { Text, Paragraph } = Typography;
 
-interface BookGenerationModalProps {
+interface CreateStoryProgressModalProps {
   open: boolean;
   onCancel: () => void;
-  settings: BookSettings;
+  settings: StorySettings;
   estimatedTime: number;
   elapsedTime: number;
 }
@@ -30,7 +30,7 @@ const formatTime = (seconds: number): string => {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
-const BookGenerationModal: React.FC<BookGenerationModalProps> = ({ 
+const CreateStoryProgressModal: React.FC<CreateStoryProgressModalProps> = ({ 
   open, 
   onCancel, 
   settings,
@@ -45,7 +45,7 @@ const BookGenerationModal: React.FC<BookGenerationModalProps> = ({
     pageImages: [],
     pagesGenerated: 0
   });
-  const { addBook } = useBooks();
+  const { addStory } = useStories();
   const [isGenerating, setIsGenerating] = React.useState(false);
   const generationAttempted = React.useRef(false);
   const [timeRemaining, setTimeRemaining] = React.useState(0);
@@ -89,8 +89,8 @@ const BookGenerationModal: React.FC<BookGenerationModalProps> = ({
       setIsGenerating(true);
       generationAttempted.current = true;
       
-      const generator = new BookGenerator(settings);
-      const book = await generator.generateBook(
+      const generator = new StoryGenerator(settings);
+      const story = await generator.generateStory(
         (progress, message) => {
           setState(prev => ({ ...prev, progress, statusMessage: message }));
         },
@@ -123,7 +123,7 @@ const BookGenerationModal: React.FC<BookGenerationModalProps> = ({
         numPages: settings.numPages
       });
 
-      await addBook(book);
+      await addStory(story);
       onCancel();
     } catch (error) {
       console.error('Error generating book:', error);
@@ -134,7 +134,7 @@ const BookGenerationModal: React.FC<BookGenerationModalProps> = ({
     } finally {
       setIsGenerating(false);
     }
-  }, [settings, addBook, onCancel]);
+  }, [settings, addStory, onCancel]);
 
   React.useEffect(() => {
     if (open && !isGenerating && !generationAttempted.current) {
@@ -257,4 +257,4 @@ const BookGenerationModal: React.FC<BookGenerationModalProps> = ({
   );
 };
 
-export default BookGenerationModal; 
+export default CreateStoryProgressModal; 
