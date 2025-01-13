@@ -28,6 +28,7 @@ const LandingPage: React.FC = () => {
   };
 
   const handleCreateNew = () => {
+    if (!apiKey) return; // Early return if no API key
     MixpanelService.trackNewBookClick();
     setIsModalOpen(true);
   };
@@ -105,30 +106,32 @@ const LandingPage: React.FC = () => {
           lg={8}
           xl={6}
         >
-          <Card
-            hoverable={!!apiKey}
-            style={{
-              height: '100%',
-              cursor: apiKey ? 'pointer' : 'not-allowed',
-              opacity: apiKey ? 1 : 0.5,
-            }}
-            onClick={handleCreateNew}
-            cover={
-              <div
-                style={{
-                  height: '200px',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  backgroundColor: '#f0f0f0',
-                }}
-              >
-                <PlusOutlined style={{ fontSize: '48px', color: '#999' }} />
-              </div>
-            }
-          >
-            <Meta title="Generate New Story" />
-          </Card>
+          <Tooltip title={!apiKey ? "Please enter your OpenAI API key first" : "Create a new story"}>
+            <Card
+              hoverable={!!apiKey}
+              style={{
+                height: '100%',
+                cursor: apiKey ? 'pointer' : 'not-allowed',
+                opacity: apiKey ? 1 : 0.5,
+              }}
+              onClick={handleCreateNew}
+              cover={
+                <div
+                  style={{
+                    height: '200px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    backgroundColor: '#f0f0f0',
+                  }}
+                >
+                  <PlusOutlined style={{ fontSize: '48px', color: '#999' }} />
+                </div>
+              }
+            >
+              <Meta title="Generate New Story" />
+            </Card>
+          </Tooltip>
         </Col>
 
         {stories.map((story: Story) => (
