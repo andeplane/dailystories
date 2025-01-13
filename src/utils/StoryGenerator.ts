@@ -166,9 +166,11 @@ Ensure that the story progresses naturally towards the conclusion.`;
     // Combine the story summary and current section text
     const combinedText = `Summary of the story so far: ${storySummary}\n\nCurrent page text: ${currentPageText}`;
 
-    const illustrationStylePrompt = `The illustration should be in the **${this.storySettings.illustrationStyle}** style, colorful, and appealing to a ${this.storySettings.childAge}-year-old child`;
+    const illustrationStylePrompt = `
+    Illustration style: ${this.storySettings.illustrationStyle}
+    Appealing to a ${this.storySettings.childAge}-year-old child`;
 
-    let prompt = `Generate an image for the current page of a children's book. Only generate image as the user cannot read.
+    let prompt = `Generate an image for the current page of a children's book.
 ${combinedText}
 ${illustrationStylePrompt}`;
 
@@ -270,9 +272,6 @@ ${storySoFar}`;
     Style requirements:
     - Generate image as a book cover, including the book itself
     - Illustration style: ${this.storySettings.illustrationStyle}
-    - Make it colorful and appealing to a ${this.storySettings.childAge}-year-old child
-    - Should be eye-catching and suitable for a book cover
-    - Include visual elements that represent key themes from the story
     - Text should be clear and readable
     Story summary: ${storySummary}`;
 
