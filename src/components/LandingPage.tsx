@@ -177,13 +177,13 @@ const LandingPage: React.FC = () => {
                         title="Delete this story?"
                         description="This action cannot be undone."
                         onConfirm={(e) => handleDeleteStory(e as React.MouseEvent, story.id)}
+                        onCancel={(e) => e?.stopPropagation()}
                         okText="Yes"
                         cancelText="No"
                       >
-                        <DeleteOutlined 
-                          style={{ color: '#ff4d4f' }} 
-                          onClick={e => e.stopPropagation()} 
-                        />
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <DeleteOutlined style={{ color: '#ff4d4f' }} />
+                        </div>
                       </Popconfirm>
                     </div>
                   }
