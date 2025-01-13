@@ -168,7 +168,9 @@ Ensure that the story progresses naturally towards the conclusion.`;
 
     const illustrationStylePrompt = `
     Illustration style: ${this.storySettings.illustrationStyle}
-    Appealing to a ${this.storySettings.childAge}-year-old child`;
+    Appealing to a ${this.storySettings.childAge}-year-old child.
+    NO TEXT IN THE IMAGE.
+    `;
 
     let prompt = `Generate an image for the current page of a children's book.
 ${combinedText}
