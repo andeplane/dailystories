@@ -199,7 +199,14 @@ const LandingPage: React.FC = () => {
                 <Meta
                   title={
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span>{story.title}</span>
+                      <span style={{ 
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        marginRight: '8px'
+                      }}>
+                        {story.title}
+                      </span>
                       <Popconfirm
                         title="Delete this story?"
                         description="This action cannot be undone."
@@ -209,7 +216,10 @@ const LandingPage: React.FC = () => {
                         cancelText="No"
                       >
                         <div onClick={(e) => e.stopPropagation()}>
-                          <DeleteOutlined style={{ color: '#ff4d4f' }} />
+                          <DeleteOutlined style={{ 
+                            color: '#ff4d4f',
+                            flexShrink: 0
+                          }} />
                         </div>
                       </Popconfirm>
                     </div>
