@@ -259,34 +259,77 @@ ${storySoFar}`;
   async generateCoverImage(storyOutline: string): Promise<string> {
     console.log("Generating cover image...");
 
-    // Get full story text and generate a summary
-    const storySummary = await this.openai.generateCompletion(
-      `Generate a summary of the story: ${storyOutline}`,
-      this.storySettings.models.generationModel,
-      1000,
-      `You will generate a summary of a story to be used as an image prompt for a cover image. 
-      The model in use will be dall-e-3. The summary should be a single paragraph that captures 
-      the essence of the story.`
-    );
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 1000;
+    let retryCount = 0;
+    let lastError = "";
 
-    // Create the cover image prompt
-    let coverImagePrompt = `Generate a cover image for the children's book titled "${this.storySettings.title}".
-    Style requirements:
-    - Generate image as a book cover, including the book itself
-    - Illustration style: ${this.storySettings.illustrationStyle}
-    - Text should be clear and readable
-    Story summary: ${storySummary}`;
+    while (retryCount < MAX_RETRIES) {
+      try {
+        // Get full story text and generate a summary
+        const storySummary = await this.openai.generateCompletion(
+          `Generate a summary of the story: ${storyOutline}
+          ${
+            lastError
+              ? `Previous attempt failed with error: ${lastError}. Please adjust the summary accordingly.`
+              : ""
+          }`,
+          this.storySettings.models.generationModel,
+          1000,
+          `You will generate a summary of a story to be used as an image prompt for a cover image. 
+          The model in use will be dall-e-3. The summary should be a single paragraph that captures 
+          the essence of the story. Keep the language simple and safe for children.
+          ${
+            lastError
+              ? "Please ensure the summary avoids content that could trigger the previous error."
+              : ""
+          }`
+        );
 
-    // Cap to 1000 characters
-    coverImagePrompt = coverImagePrompt.slice(0, 1000);
+        // Create the cover image prompt with safer language
+        let coverImagePrompt = `Create a child-friendly book cover for "${this.storySettings.title}".
+        Style requirements:
+        - Create a warm, inviting book cover design
+        - Use illustration style: ${this.storySettings.illustrationStyle}
+        - Make text clear and readable
+        - Keep the imagery appropriate for children
+        Story essence: ${storySummary}`;
 
-    const imageBuffer = await this.openai.generateImage(
-      coverImagePrompt,
-      "1792x1024"
-    );
-    const imageBase64 = imageBuffer.toString("base64");
-    console.log("Cover image generated as Base64 string.");
-    return imageBase64;
+        // Cap to 1000 characters
+        coverImagePrompt = coverImagePrompt.slice(0, 1000);
+        console.log("coverImagePrompt", coverImagePrompt);
+
+        const imageBuffer = await this.openai.generateImage(
+          coverImagePrompt,
+          "1792x1024"
+        );
+        const imageBase64 = imageBuffer.toString("base64");
+        console.log("Cover image generated as Base64 string.");
+        return imageBase64;
+      } catch (error) {
+        const openAIError = error as OpenAIError;
+        console.error(
+          `Error generating cover image (attempt ${retryCount + 1}):`,
+          openAIError
+        );
+
+        lastError = openAIError.message || "Unknown error occurred";
+
+        if (openAIError.status === 400 && retryCount < MAX_RETRIES - 1) {
+          retryCount++;
+          console.log(
+            `Retrying cover generation with attempt ${retryCount + 1}...`
+          );
+          await delay(RETRY_DELAY);
+          continue;
+        }
+
+        // If we've exhausted retries or it's a different error, throw it
+        throw error;
+      }
+    }
+
+    throw new Error("Failed to generate cover image after maximum retries");
   }
 
   async generateStory(
