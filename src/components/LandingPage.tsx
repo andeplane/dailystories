@@ -61,7 +61,7 @@ const LandingPage: React.FC = () => {
         <Col xs={24} sm={24} md={12} lg={8}>
           <Form.Item
             label={
-              <span style={{ display: 'block', marginBottom: '8px' }}>
+              <span style={{ display: 'block'}}>
                 OpenAI API Key
               </span>
             }
@@ -69,24 +69,36 @@ const LandingPage: React.FC = () => {
               <span style={{ 
                 fontSize: '12px',
                 display: 'block',
-                wordBreak: 'break-word' 
+                wordBreak: 'break-word',
+                minHeight: '32px'
               }}>
                 {!apiKey 
-                  ? "Enter your OpenAI API key to generate stories" 
+                  ? <>
+                      Enter your OpenAI API key to generate stories.{' '}
+                      <a 
+                        href="https://platform.openai.com/docs/quickstart"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        How to get an API key.
+                      </a>
+                    </> 
                   : "✓ API key saved in your browser's local storage"}
               </span>
             }
+
             extra={
               <span style={{ 
                 fontSize: '12px', 
                 color: '#666',
                 display: 'block',
-                marginTop: '4px',
+                marginTop: '-12px',
                 wordBreak: 'break-word'
               }}>
                 Your API key is stored locally in your browser.
               </span>
             }
+
           >
             <Input.Password
               value={apiKey}
