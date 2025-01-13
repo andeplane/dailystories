@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/dailystories/static/css/main.dd1ea7b7.css",
-    "main.js": "/dailystories/static/js/main.69f92057.js",
+    "main.js": "/dailystories/static/js/main.746b3415.js",
     "index.html": "/dailystories/index.html",
     "main.dd1ea7b7.css.map": "/dailystories/static/css/main.dd1ea7b7.css.map",
-    "main.69f92057.js.map": "/dailystories/static/js/main.69f92057.js.map"
+    "main.746b3415.js.map": "/dailystories/static/js/main.746b3415.js.map"
   },
   "entrypoints": [
     "static/css/main.dd1ea7b7.css",
-    "static/js/main.69f92057.js"
+    "static/js/main.746b3415.js"
   ]
 }
