@@ -374,7 +374,6 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
             >
               <Select>
                 <Select.Option value="Fantasy">Fantasy</Select.Option>
-                <Select.Option value="Disney">Disney</Select.Option>
                 <Select.Option value="Cartoon">Cartoon</Select.Option>
                 <Select.Option value="Pencil drawing">Pencil drawing</Select.Option>
                 <Select.Option value="Anime">Anime</Select.Option>
