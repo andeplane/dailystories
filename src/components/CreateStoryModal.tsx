@@ -254,7 +254,8 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
         open={open && !showGenerationModal}
         onOk={handleOk}
         onCancel={onCancel}
-        width={600}
+        width="90vw"
+        style={{ maxWidth: '600px' }}
         okButtonProps={{ disabled: !isFormValid }}
       >
         <Form

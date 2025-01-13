@@ -164,8 +164,8 @@ const CreateStoryProgressModal: React.FC<CreateStoryProgressModalProps> = ({
       footer={null}
       closable={!isGenerating}
       maskClosable={!isGenerating}
-      width="95vw"
-      style={{ maxWidth: '1000px' }}
+      width="90vw"
+      style={{ maxWidth: '800px' }}
     >
       <div style={{ textAlign: 'center', padding: '12px' }}>
         <Progress 
