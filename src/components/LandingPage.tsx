@@ -1,7 +1,7 @@
 // src/components/LandingPage.tsx
 import React, { useState } from 'react';
-import { Card, Row, Col, Popconfirm, Tooltip, Input, Form } from 'antd';
-import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Popconfirm, Tooltip, Input, Form, Button } from 'antd';
+import { PlusOutlined, DeleteOutlined, SettingOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useStories } from '../contexts/StoryContext';
 import { Story } from '../types/Story';
@@ -20,11 +20,16 @@ const LandingPage: React.FC = () => {
   const [apiKey, setApiKey] = useState<string>(() => {
     return localStorage.getItem(OPENAI_KEY_STORAGE) || '';
   });
+  const [showApiSettings, setShowApiSettings] = useState(!apiKey);
 
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newKey = e.target.value;
     setApiKey(newKey);
     localStorage.setItem(OPENAI_KEY_STORAGE, newKey);
+    if (newKey) {
+      // Collapse the settings after a short delay to show the success message
+      setTimeout(() => setShowApiSettings(false), 1500);
+    }
   };
 
   const handleCreateNew = () => {
@@ -59,54 +64,64 @@ const LandingPage: React.FC = () => {
     <div style={{ padding: '20px' }}>
       <Row style={{ marginBottom: '24px' }}>
         <Col xs={24} sm={24} md={12} lg={8}>
-          <Form.Item
-            label={
-              <span style={{ display: 'block'}}>
-                OpenAI API Key
-              </span>
-            }
-            help={
-              <span style={{ 
-                fontSize: '12px',
-                display: 'block',
-                wordBreak: 'break-word',
-                minHeight: '32px'
-              }}>
-                {!apiKey 
-                  ? <>
-                      Enter your OpenAI API key to generate stories.{' '}
-                      <a 
-                        href="https://platform.openai.com/docs/quickstart"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        How to get an API key.
-                      </a>
-                    </> 
-                  : "✓ API key saved in your browser's local storage"}
-              </span>
-            }
-
-            extra={
-              <span style={{ 
-                fontSize: '12px', 
-                color: '#666',
-                display: 'block',
-                marginTop: '-12px',
-                wordBreak: 'break-word'
-              }}>
-                Your API key is stored locally in your browser.
-              </span>
-            }
-
-          >
-            <Input.Password
-              value={apiKey}
-              onChange={handleApiKeyChange}
-              placeholder="Enter your OpenAI API key"
-              style={{ width: '100%' }}
-            />
-          </Form.Item>
+          {showApiSettings ? (
+            <Form.Item
+              label={
+                <span style={{ display: 'block'}}>
+                  OpenAI API Key
+                </span>
+              }
+              help={
+                <span style={{ 
+                  fontSize: '12px',
+                  display: 'block',
+                  wordBreak: 'break-word',
+                  minHeight: '32px'
+                }}>
+                  {!apiKey 
+                    ? <>
+                        Enter your OpenAI API key to generate stories.{' '}
+                        <a 
+                          href="https://platform.openai.com/docs/quickstart"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          How to get an API key.
+                        </a>
+                      </> 
+                    : "✓ API key saved in your browser's local storage"}
+                </span>
+              }
+              extra={
+                <span style={{ 
+                  fontSize: '12px', 
+                  color: '#666',
+                  display: 'block',
+                  marginTop: '-12px',
+                  wordBreak: 'break-word'
+                }}>
+                  Your API key is stored locally in your browser.
+                </span>
+              }
+            >
+              <Input.Password
+                value={apiKey}
+                onChange={handleApiKeyChange}
+                placeholder="Enter your OpenAI API key"
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+          ) : (
+            <Tooltip title="API Settings">
+              <Button 
+                icon={<SettingOutlined />}
+                onClick={() => setShowApiSettings(true)}
+                style={{ marginBottom: '16px' }}
+              >
+                API Settings
+              </Button>
+            </Tooltip>
+          )}
         </Col>
       </Row>
 
