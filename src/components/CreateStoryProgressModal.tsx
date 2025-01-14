@@ -158,7 +158,7 @@ const CreateStoryProgressModal: React.FC<CreateStoryProgressModalProps> = ({
 
   return (
     <Modal
-      title="Generating Your Story"
+      title={`Generating "${settings.title}"`}
       open={open}
       onCancel={onCancel}
       footer={null}
