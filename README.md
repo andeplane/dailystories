@@ -4,6 +4,13 @@ DailyStories is a web application created by Anders Hafreager that allows users 
 
 Try it out at: [https://andeplane.github.io/dailystories](https://andeplane.github.io/dailystories)
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/bc8cb822-8b8f-451d-94a4-a76341e30c36" alt="IMG_7738-portrait" width="30%" />
+  <img src="https://github.com/user-attachments/assets/d5c8ffa4-eb4b-4a7f-8d64-df26337c30c9" alt="IMG_7739-portrait" width="30%" />
+  <img src="https://github.com/user-attachments/assets/f53c1051-455a-4fb6-b6b0-e3555609cf00" alt="IMG_7740-portrait" width="30%" />
+</p>
+
+
 ## Features
 
 - Generate custom personalized children's books with AI
