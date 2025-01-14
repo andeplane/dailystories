@@ -24,7 +24,7 @@ To develop or contribute to DailyStories, you'll need:
 
 - An OpenAI API key with access to:
   - gpt-4o-mini for story generation
-  - DALL-E 3 for image generation
+  - DALL-E 3 for book cover and illustration generation
 
 ### Environment Setup
 
