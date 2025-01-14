@@ -6,11 +6,9 @@ Try it out at: [https://andeplane.github.io/dailystories](https://andeplane.gith
 
 ## Features
 
-- Generate custom children's books with AI
+- Generate custom personalized children's books with AI
 - Specify book themes, length, and other settings
 - View generated books in an interactive reader
-- Save books locally using IndexedDB
-- Track analytics with Mixpanel integration
 
 ## Getting Started
 
@@ -24,11 +22,9 @@ Try it out at: [https://andeplane.github.io/dailystories](https://andeplane.gith
 
 To develop or contribute to DailyStories, you'll need:
 
-- Node.js 18 or higher
 - An OpenAI API key with access to:
-  - GPT-4 for story generation
+  - gpt-4o-mini for story generation
   - DALL-E 3 for image generation
-- A Mixpanel account (optional, for analytics)
 
 ### Environment Setup
 
