@@ -11,4 +11,5 @@ export interface Story {
   coverImageBase64: string;
   pages: Page[];
   createdAt?: Date;
+  isPreinstalled?: boolean;
 }

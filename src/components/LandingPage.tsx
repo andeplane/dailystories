@@ -300,21 +300,23 @@ const LandingPage: React.FC = () => {
                         }}>
                           {story.title}
                         </span>
-                        <Popconfirm
-                          title="Delete this story?"
-                          description="This action cannot be undone."
-                          onConfirm={(e) => handleDeleteStory(e as React.MouseEvent, story.id)}
-                          onCancel={(e) => e?.stopPropagation()}
-                          okText="Yes"
-                          cancelText="No"
-                        >
-                          <div onClick={(e) => e.stopPropagation()}>
-                            <DeleteOutlined style={{ 
-                              color: '#ff4d4f',
-                              flexShrink: 0
-                            }} />
-                          </div>
-                        </Popconfirm>
+                        {!story.isPreinstalled && (
+                          <Popconfirm
+                            title="Delete this story?"
+                            description="This action cannot be undone."
+                            onConfirm={(e) => handleDeleteStory(e as React.MouseEvent, story.id)}
+                            onCancel={(e) => e?.stopPropagation()}
+                            okText="Yes"
+                            cancelText="No"
+                          >
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <DeleteOutlined style={{ 
+                                color: '#ff4d4f',
+                                flexShrink: 0
+                              }} />
+                            </div>
+                          </Popconfirm>
+                        )}
                       </div>
                     }
                   />

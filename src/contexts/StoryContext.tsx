@@ -30,8 +30,12 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const loadBooks = async () => {
       const db = await initDB();
       const allStories = await db.getAll('stories');
-      // setStories(allStories);
-      setStories([...storiesData, ...allStories]);
+      // Mark preinstalled stories
+      const preinstalledWithFlag = storiesData.map(story => ({
+        ...story,
+        isPreinstalled: true
+      }));
+      setStories([...preinstalledWithFlag, ...allStories]);
     };
     loadBooks();
   }, []);
