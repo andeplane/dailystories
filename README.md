@@ -2,7 +2,7 @@
 
 DailyStories is an app that allows users to generate personalized children's books using AI. Add the child's name and age, and generate stories where they are the main character with beautiful illustrations. The app is built with React and powered by OpenAI's API, it creates unique stories with custom illustrations based on user preferences.
 
-Try it out at: [https://andeplane.github.io/dailystories](https://andeplane.github.io/dailystories)
+Try it out at: [https://dailystories.ai](https://dailystories.ai)
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/bc8cb822-8b8f-451d-94a4-a76341e30c36" alt="IMG_7738-portrait" width="30%" />
