@@ -16,7 +16,21 @@ const StoryViewer: React.FC<StoryViewerProps> = ({ story }) => {
 
   React.useEffect(() => {
     MixpanelService.trackStoryRead(story.id, story.title);
-  }, [story.id, story.title]);
+
+    // Add keyboard event listener
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        navigate('/');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Cleanup listener on component unmount
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [story.id, story.title, navigate]);
 
   return (
     <Card style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
