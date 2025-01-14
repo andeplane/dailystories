@@ -150,12 +150,10 @@ const LandingPage: React.FC = () => {
           <Col xs={24} sm={24} md={12} lg={8}>
             {showApiSettings ? (
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <h3 style={{ margin: 0 }}>API Settings</h3>
+                <div style={{ marginBottom: '16px' }}>
                   <Button 
                     icon={<SettingOutlined />}
                     onClick={() => setShowApiSettings(false)}
-                    size="small"
                   >
                     Hide Settings
                   </Button>
