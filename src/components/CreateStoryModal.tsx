@@ -262,50 +262,6 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
           layout="vertical"
           onValuesChange={handleValuesChange}
         >
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
-            <div style={{ fontWeight: 'bold', fontSize: '16px', marginRight: '36px' }}>
-              Story Details
-            </div>
-            <Button 
-              onClick={handleSuggest}
-              type="default"
-              loading={isSuggestLoading}
-              disabled={isSuggestLoading || !canSuggest}
-              title={!canSuggest ? "Fill in information about your child to suggest story" : ""}
-            >
-              {isSuggestLoading ? 'Generating Suggestion...' : 'Suggest Story'}
-            </Button>
-          </div>
-
-          <div>
-            <Form.Item
-              name="title"
-              label="Title"
-              rules={[{ required: true }]}
-            >
-              <Input placeholder="e.g., Sarah's Magical Adventure" />
-            </Form.Item>
-
-            <Form.Item
-              name="bookTheme"
-              label="Theme"
-              rules={[{ required: true }]}
-            >
-              <Input placeholder="e.g., Adventure in space" />
-            </Form.Item>
-
-            <Form.Item
-              name="storylineInstructions"
-              label="Quick summary of the story"
-              rules={[{ required: true }]}
-            >
-              <TextArea 
-                rows={3}
-                placeholder="e.g., A magical adventure where the child learns about friendship" 
-              />
-            </Form.Item>
-          </div>
-
           <Divider orientation="left">Child's Information</Divider>
           <div>
             <Form.Item
@@ -336,6 +292,50 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
               label="Favorite Colors (comma-separated)"
             >
               <Input placeholder="e.g., blue, red, green" />
+            </Form.Item>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
+            <div style={{ fontWeight: 'bold', fontSize: '16px', marginRight: '36px' }}>
+              Story Details
+            </div>
+            <Button 
+              onClick={handleSuggest}
+              type="default"
+              loading={isSuggestLoading}
+              disabled={isSuggestLoading || !canSuggest}
+              title={!canSuggest ? "Fill in information about your child to suggest story" : ""}
+            >
+              {isSuggestLoading ? 'Generating Suggestion...' : 'Auto-suggest'}
+            </Button>
+          </div>
+
+          <div>
+            <Form.Item
+              name="title"
+              label="Title"
+              rules={[{ required: true }]}
+            >
+              <Input placeholder="e.g., Sarah's Magical Adventure" />
+            </Form.Item>
+
+            <Form.Item
+              name="bookTheme"
+              label="Theme"
+              rules={[{ required: true }]}
+            >
+              <Input placeholder="e.g., Adventure in space" />
+            </Form.Item>
+
+            <Form.Item
+              name="storylineInstructions"
+              label="Quick summary of the story"
+              rules={[{ required: true }]}
+            >
+              <TextArea 
+                rows={3}
+                placeholder="e.g., A magical adventure where the child learns about friendship" 
+              />
             </Form.Item>
           </div>
 
