@@ -1,0 +1,35 @@
+.welcome-carousel {
+  width: 100%;
+}
+
+.welcome-carousel .slick-list,
+.welcome-carousel .slick-track {
+  width: 100% !important;
+  transform: none !important;
+}
+
+.welcome-carousel .slick-slide {
+  width: 100% !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.welcome-carousel .slick-slide.slick-active {
+  opacity: 1;
+  position: relative;
+}
+
+.welcome-carousel .slick-dots li button {
+  background: #1890ff !important;
+}
+
+.welcome-carousel .slick-dots li.slick-active button {
+  background: #1890ff !important;
+}
+
+.welcome-carousel .slick-dots li {
+  background: #1890ff;
+} 
