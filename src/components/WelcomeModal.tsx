@@ -26,7 +26,7 @@ const WelcomeModal: React.FC = () => {
 
   useEffect(() => {
     let hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
-    if (true || !hasSeenWelcome) {
+    if (!hasSeenWelcome) {
       setIsModalVisible(true);
       localStorage.setItem('hasSeenWelcome', 'true');
     }
@@ -107,7 +107,7 @@ const WelcomeModal: React.FC = () => {
         <Space direction="vertical" size="small">
           <Space>
             <EditOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
-            <Paragraph style={{ margin: 0 }}>Generate personalized stories your child want to hear</Paragraph>
+            <Paragraph style={{ margin: 0 }}>Generate personalized stories</Paragraph>
           </Space>
           <Space>
             <PictureOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
