@@ -1,6 +1,6 @@
 // src/components/LandingPage.tsx
 import React, { useState } from 'react';
-import { Card, Row, Col, Popconfirm, Tooltip, Input, Form, Button } from 'antd';
+import { Card, Row, Col, Popconfirm, Tooltip, Input, Form, Button, Select } from 'antd';
 import { PlusOutlined, DeleteOutlined, SettingOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useStories } from '../contexts/StoryContext';
@@ -12,6 +12,12 @@ import { MixpanelService } from '../utils/MixpanelService';
 const { Meta } = Card;
 
 const OPENAI_KEY_STORAGE = 'openai_api_key';
+const OPENAI_MODEL_STORAGE = 'openai_model';
+const MODEL_OPTIONS = [
+  { label: 'GPT-4o', value: 'gpt-4o' },
+  { label: 'GPT-4o-mini', value: 'gpt-4o-mini' },
+  { label: 'O1 preview', value: 'o1-preview' },
+];
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -21,14 +27,16 @@ const LandingPage: React.FC = () => {
     return localStorage.getItem(OPENAI_KEY_STORAGE) || '';
   });
   const [showApiSettings, setShowApiSettings] = useState(!apiKey);
+  const [selectedModel, setSelectedModel] = useState<string>(() => {
+    return localStorage.getItem(OPENAI_MODEL_STORAGE) || 'gpt-4o-mini';
+  });
 
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newKey = e.target.value;
     setApiKey(newKey);
     localStorage.setItem(OPENAI_KEY_STORAGE, newKey);
     if (newKey) {
-      // Collapse the settings after a short delay to show the success message
-      setTimeout(() => setShowApiSettings(false), 1500);
+      setShowApiSettings(false);
     }
   };
 
@@ -40,7 +48,6 @@ const LandingPage: React.FC = () => {
 
   const handleModalSubmit = (settings: StorySettings) => {
     setIsModalOpen(false);
-    // TODO: Initialize BookGenerator with settings and start generation
     addStory({
       title: settings.title,
       summary: `A story about ${settings.bookTheme}`,
@@ -127,62 +134,67 @@ const LandingPage: React.FC = () => {
       <Row style={{ marginBottom: '24px' }}>
         <Col xs={24} sm={24} md={12} lg={8}>
           {showApiSettings ? (
-            <Form.Item
-              label={
-                <span style={{ display: 'block'}}>
-                  OpenAI API Key
-                </span>
-              }
-              help={
-                <span style={{ 
-                  fontSize: '12px',
-                  display: 'block',
-                  wordBreak: 'break-word',
-                  minHeight: '32px'
-                }}>
-                  {!apiKey 
-                    ? <>
-                        Enter your OpenAI API key to generate stories.{' '}
-                        <a 
-                          href="https://platform.openai.com/docs/quickstart"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          How to get an API key.
-                        </a>
-                      </> 
-                    : "✓ API key saved in your browser's local storage"}
-                </span>
-              }
-              extra={
-                <span style={{ 
-                  fontSize: '12px', 
-                  color: '#666',
-                  display: 'block',
-                  marginTop: '-12px',
-                  wordBreak: 'break-word'
-                }}>
-                  Your API key is stored locally in your browser.
-                </span>
-              }
-            >
-              <Input.Password
-                value={apiKey}
-                onChange={handleApiKeyChange}
-                placeholder="Enter your OpenAI API key"
-                style={{ width: '100%' }}
-              />
-            </Form.Item>
-          ) : (
-            <Tooltip title="API Settings">
-              <Button 
-                icon={<SettingOutlined />}
-                onClick={() => setShowApiSettings(true)}
-                style={{ marginBottom: '16px' }}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h3 style={{ margin: 0 }}>API Settings</h3>
+                <Button 
+                  icon={<SettingOutlined />}
+                  onClick={() => setShowApiSettings(false)}
+                  size="small"
+                >
+                  Hide Settings
+                </Button>
+              </div>
+              <Form.Item
+                label="OpenAI API Key"
+                help={
+                  <span style={{ fontSize: '12px' }}>
+                    {!apiKey 
+                      ? <>
+                          Enter your OpenAI API key to generate stories.{' '}
+                          <a 
+                            href="https://platform.openai.com/docs/quickstart"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            How to get an API key.
+                          </a>
+                        </> 
+                      : "✓ API key saved in your browser's local storage"}
+                  </span>
+                }
               >
-                API Settings
-              </Button>
-            </Tooltip>
+                <Input.Password
+                  value={apiKey}
+                  onChange={handleApiKeyChange}
+                  placeholder="Enter your OpenAI API key"
+                  style={{ width: '100%' }}
+                />
+              </Form.Item>
+
+              <Form.Item
+                label="Model"
+                help="Select the OpenAI model to use for story generation"
+              >
+                <Select
+                  value={selectedModel}
+                  onChange={(value) => {
+                    setSelectedModel(value);
+                    localStorage.setItem(OPENAI_MODEL_STORAGE, value);
+                  }}
+                  options={MODEL_OPTIONS}
+                  style={{ width: '100%' }}
+                />
+              </Form.Item>
+            </div>
+          ) : (
+            <Button 
+              icon={<SettingOutlined />}
+              onClick={() => setShowApiSettings(true)}
+              style={{ marginBottom: '16px' }}
+            >
+              API Settings
+            </Button>
           )}
         </Col>
       </Row>
@@ -297,9 +309,20 @@ const LandingPage: React.FC = () => {
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
         onSubmit={(settings) => {
-          handleModalSubmit({ ...settings, openAIApiKey: apiKey });
+          handleModalSubmit({ 
+            ...settings, 
+            openAIApiKey: apiKey,
+            models: {
+              ...settings.models,
+              outlineModel: selectedModel,
+              generationModel: selectedModel,
+              feedbackModel: selectedModel,
+              imageModel: 'dall-e-3'
+            }
+          });
         }}
         apiKey={apiKey}
+        selectedModel={selectedModel}
       />
     </div>
   );

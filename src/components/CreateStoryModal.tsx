@@ -11,6 +11,7 @@ interface CreateStoryModalProps {
   onCancel: () => void;
   onSubmit: (settings: StorySettings) => void;
   apiKey: string;
+  selectedModel: string;
 }
 
 const STORAGE_KEY = 'book_settings_preferences';
@@ -25,7 +26,7 @@ const extractJSON = (text: string): string => {
   return text;
 };
 
-const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onSubmit, apiKey }) => {
+const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onSubmit, apiKey, selectedModel }) => {
   const [form] = Form.useForm();
   const [isSuggestLoading, setIsSuggestLoading] = useState(false);
   const [canSuggest, setCanSuggest] = useState(false);
@@ -86,9 +87,10 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
           colors: values.colors?.split(',').map((c: string) => c.trim()),
         },
         models: {
-          outlineModel: 'gpt-4o-mini',
-          generationModel: 'gpt-4o-mini',
-          feedbackModel: 'gpt-4o-mini',
+          outlineModel: selectedModel,
+          generationModel: selectedModel,
+          feedbackModel: selectedModel,
+          imageModel: 'dall-e-3'
         },
         openAIApiKey: apiKey
       };
@@ -139,7 +141,7 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
       
       const response = await openai.generateCompletion(
         userPrompt,
-        'gpt-4o-mini',
+        selectedModel,
         16384,
         systemPrompt
       );
