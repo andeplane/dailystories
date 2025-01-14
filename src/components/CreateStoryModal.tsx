@@ -267,7 +267,7 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
             <Form.Item
               name="childName"
               label="Child's Name"
-              rules={[{ required: true }]}
+              rules={[{ required: true, message: "Please enter your child's name" }]}
             >
               <Input />
             </Form.Item>
@@ -275,7 +275,7 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
             <Form.Item
               name="childAge"
               label="Child's Age"
-              rules={[{ required: true }]}
+              rules={[{ required: true, message: "Please enter your child's age" }]}
             >
               <InputNumber min={1} max={12} />
             </Form.Item>
@@ -314,7 +314,7 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
             <Form.Item
               name="title"
               label="Title"
-              rules={[{ required: true }]}
+              rules={[{ required: true, message: "Please enter a title for the story" }]}
             >
               <Input placeholder="e.g., Sarah's Magical Adventure" />
             </Form.Item>
@@ -322,7 +322,7 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
             <Form.Item
               name="bookTheme"
               label="Theme"
-              rules={[{ required: true }]}
+              rules={[{ required: true, message: "Please enter a theme for the story" }]}
             >
               <Input placeholder="e.g., Adventure in space" />
             </Form.Item>
@@ -330,7 +330,7 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
             <Form.Item
               name="storylineInstructions"
               label="Quick summary of the story"
-              rules={[{ required: true }]}
+              rules={[{ required: true, message: "Please enter a summary of the story" }]}
             >
               <TextArea 
                 rows={3}
@@ -344,7 +344,7 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
             <Form.Item
               name="language"
               label="Language"
-              rules={[{ required: true }]}
+              rules={[{ required: true, message: "Please select a language" }]}
               initialValue="English"
             >
               <Select>
@@ -369,7 +369,7 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
             <Form.Item
               name="illustrationStyle"
               label="Illustration Style"
-              rules={[{ required: true }]}
+              rules={[{ required: true, message: "Please select an illustration style" }]}
               initialValue="Fantasy"
             >
               <Select>
