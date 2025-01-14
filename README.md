@@ -18,7 +18,7 @@ Try it out at: [https://andeplane.github.io/dailystories](https://andeplane.gith
 2. Install dependencies with `npm install`
 3. Get an OpenAI API key from [OpenAI's website](https://openai.com)
 4. Start the development server with `npm start`
-5. Open [http://localhost:3000](http://localhost:3000) to view it in the browser
+5. Open [http://localhost:3000/dailystories](http://localhost:3000/dailystories) to view it in the browser
 
 ## Development Requirements
 
