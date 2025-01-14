@@ -39,4 +39,41 @@
     content: '';
   }
   
+  .welcome-modal {
+    top: 20px;
+  }
+  
+  .carousel-slide-container {
+    height: 350px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .carousel-image {
+    max-height: 350px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+  }
+  
+  @media (min-width: 1024px) {
+    .welcome-modal {
+      top: 40px;
+    }
+    
+    .welcome-modal .ant-modal-content {
+      max-height: 90vh;
+    }
+
+    .carousel-slide-container {
+      height: 450px;
+    }
+
+    .carousel-image {
+      max-height: 450px;
+    }
+  }
+  
   

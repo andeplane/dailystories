@@ -10,7 +10,7 @@ const carouselSlideStyle = {
   flexDirection: 'column' as const,
   alignItems: 'center',
   justifyContent: 'center',
-  height: '500px',
+  height: '400px',
   width: '100%'
 };
 
@@ -18,7 +18,7 @@ const carouselContainerStyle = {
   width: '100%',
   maxWidth: '800px',
   margin: '0 auto',
-  paddingBottom: '30px'  // Add this line
+  paddingBottom: '20px'
 };
 
 const WelcomeModal: React.FC = () => {
@@ -26,7 +26,7 @@ const WelcomeModal: React.FC = () => {
 
   useEffect(() => {
     let hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
-    if (!hasSeenWelcome) {
+    if (true || !hasSeenWelcome) {
       setIsModalVisible(true);
       localStorage.setItem('hasSeenWelcome', 'true');
     }
@@ -38,7 +38,7 @@ const WelcomeModal: React.FC = () => {
 
   return (
     <Modal
-      title={<Title level={2}>Welcome to Daily Stories</Title>}
+      title={<Title level={2} style={{ margin: '8px 0' }}>Welcome to Daily Stories</Title>}
       visible={isModalVisible}
       onOk={handleOk}
       onCancel={handleOk}
@@ -47,9 +47,10 @@ const WelcomeModal: React.FC = () => {
           Start Creating Stories
         </Button>,
       ]}
-      width={800}
+      width={1000}
+      className="welcome-modal"
     >
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+      <Space direction="vertical" size="middle" style={{ width: '100%' }}>
         <Paragraph>
           DailyStories is an AI-powered children's book generator that creates unique, personalized stories for your little ones.
           Provide your own OpenAI API key to generate stories.
@@ -62,77 +63,59 @@ const WelcomeModal: React.FC = () => {
             className="welcome-carousel"
           >
             <div style={carouselSlideStyle}>
-              <div style={{ height: '450px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div className="carousel-slide-container">
                 <Image
                   src="/dailystories/IMG_7740-portrait.png"
                   alt="Read the book"
                   preview={false}
-                  style={{ 
-                    maxHeight: '450px', 
-                    width: 'auto', 
-                    objectFit: 'contain',
-                    display: 'block',
-                    margin: '0 auto'
-                  }}
+                  className="carousel-image"
                 />
               </div>
-              <Paragraph style={{ textAlign: 'center', marginTop: '10px' }}>
+              <Paragraph style={{ textAlign: 'center', margin: '8px 0 0' }}>
                 Generate personalized stories with colorful illustrations
               </Paragraph>
             </div>
             <div style={carouselSlideStyle}>
-              <div style={{ height: '450px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div className="carousel-slide-container">
                 <Image
                   src="/dailystories/IMG_7738-portrait.png"
                   alt="Customize a story"
                   preview={false}
-                  style={{ 
-                    maxHeight: '450px', 
-                    width: 'auto', 
-                    objectFit: 'contain',
-                    display: 'block',
-                    margin: '0 auto'
-                  }}
+                  className="carousel-image"
                 />
               </div>
-              <Paragraph style={{ textAlign: 'center', marginTop: '10px' }}>
+              <Paragraph style={{ textAlign: 'center', margin: '8px 0 0' }}>
                 Create a custom story for your child, with them as main character
               </Paragraph>
             </div>
             <div style={carouselSlideStyle}>
-              <div style={{ height: '450px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div className="carousel-slide-container">
                 <Image
                   src="/dailystories/IMG_7739-portrait.png"
                   alt="Generate using AI"
                   preview={false}
-                  style={{ 
-                    maxHeight: '450px', 
-                    width: 'auto', 
-                    objectFit: 'contain',
-                    display: 'block',
-                    margin: '0 auto'
-                  }}
+                  className="carousel-image"
                 />
               </div>
-              <Paragraph style={{ textAlign: 'center', marginTop: '10px' }}>
+              <Paragraph style={{ textAlign: 'center', margin: '8px 0 0' }}>
                 The story with illustrations is generated using AI
               </Paragraph>
             </div>
           </Carousel>
         </div>
 
-        <Space direction="vertical">
+        <Space direction="vertical" size="small">
           <Space>
             <EditOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
-            <Paragraph>Generate personalized stories your child want to hear</Paragraph>
+            <Paragraph style={{ margin: 0 }}>Generate personalized stories your child want to hear</Paragraph>
           </Space>
           <Space>
             <PictureOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
-            <Paragraph>Beautiful illustrations generated by AI</Paragraph>
+            <Paragraph style={{ margin: 0 }}>Beautiful illustrations generated by AI</Paragraph>
           </Space>
           <Space>
             <KeyOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
-            <Paragraph>Use your own OpenAI API key</Paragraph>
+            <Paragraph style={{ margin: 0 }}>Use your own OpenAI API key</Paragraph>
           </Space>
         </Space>
       </Space>
