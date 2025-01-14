@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { StoryProvider, useStories } from './contexts/StoryContext';
 import { Story } from './types/Story';
 import WelcomeModal from './components/WelcomeModal';
+import { MixpanelService } from './utils/MixpanelService';
 
 const StoryRoute = () => {
   const { id } = useParams();
@@ -25,6 +26,10 @@ const StoryRoute = () => {
 };
 
 const App: React.FC = () => {
+  useEffect(() => {
+    MixpanelService.trackAppLoad();
+  }, []);
+
   return (
     <StoryProvider>
       <BrowserRouter basename={process.env.PUBLIC_URL}>

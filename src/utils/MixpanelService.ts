@@ -1,8 +1,15 @@
 // @ts-ignore
 import mixpanel from "mixpanel-browser";
 
-// Initialize mixpanel
-mixpanel.init("dd4ba7a15b815dbd1ba0694aea50eab9");
+// Check if we're running on localhost
+const isLocalhost =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1";
+
+// Initialize mixpanel only if not on localhost
+if (!isLocalhost) {
+  mixpanel.init("dd4ba7a15b815dbd1ba0694aea50eab9");
+}
 
 // Generate or retrieve user ID
 const getUserId = () => {
@@ -17,27 +24,37 @@ const getUserId = () => {
   return userId;
 };
 
-// Identify user on initialization
+// Identify user on initialization only if not on localhost
 const userId = getUserId();
-mixpanel.identify(userId);
+if (!isLocalhost) {
+  mixpanel.identify(userId);
+}
+
+// Helper function to track events
+const track = (eventName: string, properties?: any) => {
+  if (!isLocalhost) {
+    mixpanel.track(eventName, properties);
+  } else {
+    console.log("Mixpanel event (debug):", eventName, properties);
+  }
+};
 
 export const MixpanelService = {
-  // Add method to get current user ID
   getCurrentUserId: () => getUserId(),
 
   trackNewStoryClick: () => {
-    mixpanel.track("NewStory.Clicked");
+    track("NewStory.Clicked");
   },
 
   trackSuggestionClick: (childAge: number, language: string) => {
-    mixpanel.track("NewStory.GenerateSuggestion.Clicked", {
+    track("NewStory.GenerateSuggestion.Clicked", {
       childAge,
       language,
     });
   },
 
   trackStorySettingsSubmit: (settings: any) => {
-    mixpanel.track("NewStory.Generate.Submitted", {
+    track("NewStory.Generate.Submitted", {
       childAge: settings.childAge,
       language: settings.language,
       numPages: settings.numPages,
@@ -48,7 +65,7 @@ export const MixpanelService = {
   },
 
   trackStorySettingsCancel: () => {
-    mixpanel.track("NewStory.Generate.Cancelled");
+    track("NewStory.Generate.Cancelled");
   },
 
   trackStoryGeneration: (
@@ -59,7 +76,7 @@ export const MixpanelService = {
       numPages: number;
     }
   ) => {
-    mixpanel.track("NewStory.Generate.Completed", {
+    track("NewStory.Generate.Completed", {
       totalTime: metrics.totalTime,
       averageTimePerPage: metrics.averageTimePerPage,
       numPages: metrics.numPages,
@@ -69,9 +86,16 @@ export const MixpanelService = {
   },
 
   trackStoryRead: (storyId: string, storyTitle: string) => {
-    mixpanel.track("NewStory.Read", {
+    track("NewStory.Read", {
       storyId,
       storyTitle,
+    });
+  },
+
+  trackAppLoad: () => {
+    track("App.Loaded", {
+      timestamp: new Date().toISOString(),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     });
   },
 };
