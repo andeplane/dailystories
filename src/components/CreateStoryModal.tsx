@@ -152,14 +152,14 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
         
         form.setFieldsValue({
           title: suggestion.title,
-          bookTheme: suggestion.theme,
+          theme: suggestion.theme,
           storylineInstructions: suggestion.storyline
         });
         
         const allValues = form.getFieldsValue();
         const valid = Boolean(
           allValues.title &&
-          allValues.bookTheme &&
+          allValues.theme &&
           allValues.storylineInstructions &&
           allValues.childName &&
           allValues.childAge &&
@@ -320,7 +320,7 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
             </Form.Item>
 
             <Form.Item
-              name="bookTheme"
+              name="theme"
               label="Theme"
               rules={[{ required: true, message: "Please enter a theme for the story" }]}
             >
