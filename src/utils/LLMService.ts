@@ -10,12 +10,6 @@ export interface ImageGenerationOptions {
 }
 
 export abstract class LLMService {
-  protected apiKey: string;
-
-  constructor(apiKey: string) {
-    this.apiKey = apiKey;
-  }
-
   abstract generateCompletion(
     userPrompt: string,
     model: string,

@@ -9,7 +9,7 @@ export class OpenAIService extends LLMService {
   private openai: OpenAI;
 
   constructor(apiKey: string) {
-    super(apiKey);
+    super();
     this.openai = new OpenAI({ apiKey: apiKey, dangerouslyAllowBrowser: true });
   }
 
