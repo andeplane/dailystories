@@ -1,6 +1,6 @@
 // src/components/LandingPage.tsx
 import React, { useState } from 'react';
-import { Card, Row, Col, Popconfirm, Tooltip, Input, Form, Button, Select } from 'antd';
+import { Card, Row, Col, Popconfirm, Tooltip, Input, Button, Select } from 'antd';
 import { PlusOutlined, DeleteOutlined, SettingOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useStories } from '../contexts/StoryContext';
@@ -14,9 +14,9 @@ const { Meta } = Card;
 const OPENAI_KEY_STORAGE = 'openai_api_key';
 const OPENAI_MODEL_STORAGE = 'openai_model';
 const MODEL_OPTIONS = [
-  { label: 'GPT-4o', value: 'gpt-4o' },
-  { label: 'GPT-4o-mini', value: 'gpt-4o-mini' },
-  { label: 'O1 preview', value: 'o1-preview' },
+  { label: 'gpt-4o', value: 'gpt-4o' },
+  { label: 'gpt-4o-mini', value: 'gpt-4o-mini' },
+  { label: 'o1-preview', value: 'o1-preview' },
 ];
 
 const LandingPage: React.FC = () => {
@@ -145,47 +145,53 @@ const LandingPage: React.FC = () => {
                   Hide Settings
                 </Button>
               </div>
-              <Form.Item
-                label="OpenAI API Key"
-                help={
-                  <span style={{ fontSize: '12px' }}>
-                    {!apiKey 
-                      ? <>
-                          Enter your OpenAI API key to generate stories.{' '}
-                          <a 
-                            href="https://platform.openai.com/docs/quickstart"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            How to get an API key.
-                          </a>
-                        </> 
-                      : "✓ API key saved in your browser's local storage"}
-                  </span>
-                }
-              >
-                <Input.Password
-                  value={apiKey}
-                  onChange={handleApiKeyChange}
-                  placeholder="Enter your OpenAI API key"
-                  style={{ width: '100%' }}
-                />
-              </Form.Item>
+              <div style={{ display: 'flex', marginBottom: '16px' }}>
+                <div style={{ width: '120px', paddingTop: '4px' }}>
+                  OpenAI API Key:
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Input.Password
+                    value={apiKey}
+                    onChange={handleApiKeyChange}
+                    placeholder="Enter your OpenAI API key"
+                  />
+                  <div style={{ fontSize: '12px', marginTop: '4px', color: 'rgba(0, 0, 0, 0.45)' }}>
+                    {!apiKey ? (
+                      <>
+                        Enter your{' '}
+                        <a 
+                          href="https://platform.openai.com/docs/quickstart"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          OpenAI API key
+                        </a>
+                        . The API key is only stored locally.
+                      </>
+                    ) : (
+                      "✓ API key saved in your browser's local storage"
+                    )}
+                  </div>
+                </div>
+              </div>
 
-              <Form.Item
-                label="Model"
-                help="Select the OpenAI model to use for story generation"
-              >
-                <Select
-                  value={selectedModel}
-                  onChange={(value) => {
-                    setSelectedModel(value);
-                    localStorage.setItem(OPENAI_MODEL_STORAGE, value);
-                  }}
-                  options={MODEL_OPTIONS}
-                  style={{ width: '100%' }}
-                />
-              </Form.Item>
+              <div style={{ display: 'flex' }}>
+                <div style={{ width: '120px', paddingTop: '4px' }}>Model:</div>
+                <div style={{ flex: 1 }}>
+                  <Select
+                    value={selectedModel}
+                    onChange={(value) => {
+                      setSelectedModel(value);
+                      localStorage.setItem(OPENAI_MODEL_STORAGE, value);
+                    }}
+                    options={MODEL_OPTIONS}
+                    style={{ width: '100%' }}
+                  />
+                  <div style={{ fontSize: '12px', marginTop: '4px', color: 'rgba(0, 0, 0, 0.45)' }}>
+                    Select the OpenAI model to use for story generation.
+                  </div>
+                </div>
+              </div>
             </div>
           ) : (
             <Button 
