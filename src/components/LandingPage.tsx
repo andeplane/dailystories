@@ -43,7 +43,7 @@ const LandingPage: React.FC = () => {
   const [apiKey, setApiKey] = useState<string>(() => {
     return localStorage.getItem(OPENAI_KEY_STORAGE) || '';
   });
-  const [showApiSettings, setShowApiSettings] = useState(!apiKey);
+  const [showApiSettings, setShowApiSettings] = useState(() => !localStorage.getItem(OPENAI_KEY_STORAGE));
   const [selectedModel, setSelectedModel] = useState<string>(() => {
     return localStorage.getItem(OPENAI_MODEL_STORAGE) || 'gpt-4o-mini';
   });
@@ -52,9 +52,6 @@ const LandingPage: React.FC = () => {
     const newKey = e.target.value;
     setApiKey(newKey);
     localStorage.setItem(OPENAI_KEY_STORAGE, newKey);
-    if (newKey) {
-      setShowApiSettings(false);
-    }
   };
 
   const handleCreateNew = () => {
