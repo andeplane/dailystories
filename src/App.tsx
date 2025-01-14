@@ -7,7 +7,7 @@ import StoryViewer from './components/StoryViewer';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { StoryProvider, useStories } from './contexts/StoryContext';
 import { Story } from './types/Story';
-
+import WelcomeModal from './components/WelcomeModal';
 const StoryRoute = () => {
   const { id } = useParams();
   const { getStory } = useStories();
@@ -31,6 +31,7 @@ const App: React.FC = () => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/story/:id" element={<StoryRoute />} />
         </Routes>
+        <WelcomeModal />
       </BrowserRouter>
     </StoryProvider>
   );

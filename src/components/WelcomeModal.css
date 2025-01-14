@@ -1,0 +1,42 @@
+.welcome-carousel .slick-slide {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .welcome-carousel .slick-slide > div {
+    width: 100%;
+  }
+  
+  .welcome-carousel .slick-track {
+    display: flex;
+    align-items: center;
+  }
+  
+  .welcome-carousel .slick-slide img {
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    object-fit: contain;
+  }
+  
+  .welcome-carousel .slick-dots {
+    bottom: -30px;
+  }
+  
+  .welcome-carousel .slick-dots li button {
+    background: #d9d9d9;
+    border-radius: 50%;
+    width: 8px;
+    height: 8px;
+  }
+  
+  .welcome-carousel .slick-dots li.slick-active button {
+    background: #1890ff;
+  }
+  
+  .welcome-carousel .slick-dots li button:before {
+    content: '';
+  }
+  
+  
