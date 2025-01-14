@@ -177,7 +177,9 @@ ${combinedText}
 ${illustrationStylePrompt}`;
 
     // Generate the image using the description
-    const imageBuffer = await this.openai.generateImage(prompt, "1024x1024");
+    const imageBuffer = await this.openai.generateImage(prompt, {
+      size: "1024x1024",
+    });
 
     // Convert image buffer to Base64 string
     const imageBase64 = imageBuffer.toString("base64");
@@ -299,10 +301,9 @@ ${storySoFar}`;
         coverImagePrompt = coverImagePrompt.slice(0, 1000);
         console.log("coverImagePrompt", coverImagePrompt);
 
-        const imageBuffer = await this.openai.generateImage(
-          coverImagePrompt,
-          "1792x1024"
-        );
+        const imageBuffer = await this.openai.generateImage(coverImagePrompt, {
+          size: "1792x1024",
+        });
         const imageBase64 = imageBuffer.toString("base64");
         console.log("Cover image generated as Base64 string.");
         return imageBase64;
