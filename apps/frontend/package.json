@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@dailystories/shared": "1.0.0",
     "@types/file-saver": "^2.0.7",
     "@types/jest": "^29.5.14",
     "@types/mixpanel-browser": "^2.51.0",

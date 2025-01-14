@@ -6,9 +6,9 @@ import 'antd/dist/reset.css';
 import StoryViewer from './components/StoryViewer';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { StoryProvider, useStories } from './contexts/StoryContext';
-import { Story } from './types/Story';
+import { Story } from '@dailystories/shared';
 import WelcomeModal from './components/WelcomeModal';
-import { MixpanelService } from './utils/MixpanelService';
+import { MixpanelService } from '@dailystories/shared';
 
 const StoryRoute = () => {
   const { id } = useParams();

@@ -4,10 +4,10 @@ import { Card, Row, Col, Popconfirm, Tooltip, Input, Button, Select } from 'antd
 import { PlusOutlined, DeleteOutlined, SettingOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useStories } from '../contexts/StoryContext';
-import { Story } from '../types/Story';
+import { Story } from '@dailystories/shared';
 import CreateStoryModal from './CreateStoryModal';
-import { StorySettings } from '../utils/StoryGenerator';
-import { MixpanelService } from '../utils/MixpanelService';
+import { StorySettings } from '@dailystories/shared';
+import { MixpanelService } from '@dailystories/shared';
 
 const { Meta } = Card;
 

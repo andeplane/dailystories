@@ -1,4 +1,3 @@
-// src/types/Story.ts
 export interface Page {
   text: string;
   illustrationBase64: string;
