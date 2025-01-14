@@ -26,7 +26,7 @@ const WelcomeModal: React.FC = () => {
 
   useEffect(() => {
     let hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
-    if (true || !hasSeenWelcome) {
+    if (!hasSeenWelcome) {
       setIsModalVisible(true);
       localStorage.setItem('hasSeenWelcome', 'true');
     }
