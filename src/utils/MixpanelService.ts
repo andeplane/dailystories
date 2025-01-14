@@ -25,7 +25,7 @@ export const MixpanelService = {
   // Add method to get current user ID
   getCurrentUserId: () => getUserId(),
 
-  trackNewBookClick: () => {
+  trackNewStoryClick: () => {
     mixpanel.track("NewStory.Clicked");
   },
 
@@ -36,7 +36,7 @@ export const MixpanelService = {
     });
   },
 
-  trackBookSettingsSubmit: (settings: any) => {
+  trackStorySettingsSubmit: (settings: any) => {
     mixpanel.track("NewStory.Generate.Submitted", {
       childAge: settings.childAge,
       language: settings.language,
@@ -47,11 +47,11 @@ export const MixpanelService = {
     });
   },
 
-  trackBookSettingsCancel: () => {
+  trackStorySettingsCancel: () => {
     mixpanel.track("NewStory.Generate.Cancelled");
   },
 
-  trackBookGeneration: (
+  trackStoryGeneration: (
     settings: any,
     metrics: {
       totalTime: number;
@@ -68,10 +68,10 @@ export const MixpanelService = {
     });
   },
 
-  trackBookRead: (bookId: string, bookTitle: string) => {
-    mixpanel.track("NewStory.Book.Read", {
-      bookId,
-      bookTitle,
+  trackStoryRead: (storyId: string, storyTitle: string) => {
+    mixpanel.track("NewStory.Read", {
+      storyId,
+      storyTitle,
     });
   },
 };

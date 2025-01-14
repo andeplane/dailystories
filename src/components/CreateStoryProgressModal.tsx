@@ -117,7 +117,7 @@ const CreateStoryProgressModal: React.FC<CreateStoryProgressModalProps> = ({
       const totalTime = Date.now() - startTime;
       const averageTimePerPage = pageTimings.reduce((acc, time) => acc + time, 0) / pageTimings.length;
       
-      MixpanelService.trackBookGeneration(settings, {
+      MixpanelService.trackStoryGeneration(settings, {
         totalTime,
         averageTimePerPage,
         numPages: settings.numPages

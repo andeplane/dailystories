@@ -34,7 +34,7 @@ const LandingPage: React.FC = () => {
 
   const handleCreateNew = () => {
     if (!apiKey) return; // Early return if no API key
-    MixpanelService.trackNewBookClick();
+    MixpanelService.trackNewStoryClick();
     setIsModalOpen(true);
   };
 

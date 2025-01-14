@@ -15,7 +15,7 @@ const StoryViewer: React.FC<StoryViewerProps> = ({ story }) => {
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    MixpanelService.trackBookRead(story.id, story.title);
+    MixpanelService.trackStoryRead(story.id, story.title);
   }, [story.id, story.title]);
 
   return (

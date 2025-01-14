@@ -65,7 +65,7 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
   const handleOk = () => {
     form.validateFields().then((values) => {
       // Add tracking before submitting
-      MixpanelService.trackBookSettingsSubmit(values);
+      MixpanelService.trackStorySettingsSubmit(values);
 
       // Save preferences to localStorage (excluding storylineInstructions)
       const preferencesToSave = {
@@ -198,7 +198,7 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
 
   const handleModalClose = () => {
     // Add tracking
-    MixpanelService.trackBookSettingsCancel();
+    MixpanelService.trackStorySettingsCancel();
     setShowGenerationModal(false);
     setGenerationSettings(null);
     onCancel();
