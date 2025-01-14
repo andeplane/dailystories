@@ -208,10 +208,9 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
     handleFieldChange();
     setCanSuggest(Boolean(allValues.childName && allValues.childAge && apiKey));
     
-    // Use allValues parameter instead of getting values again
     const valid = Boolean(
       allValues.title &&
-      allValues.bookTheme &&
+      allValues.theme &&
       allValues.storylineInstructions &&
       allValues.childName &&
       allValues.childAge &&
@@ -220,7 +219,7 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
       allValues.numPages
     );
     
-    console.log('Form validity check:', { allValues, valid }); // Add this for debugging
+    console.log('Form validity check:', { allValues, valid });
     setIsFormValid(valid);
   };
 
@@ -263,11 +262,13 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
           layout="vertical"
           onValuesChange={handleValuesChange}
         >
-          <div style={{ marginBottom: '24px', textAlign: 'right' }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
+            <div style={{ fontWeight: 'bold', fontSize: '16px', marginRight: '36px' }}>
+              Story Details
+            </div>
             <Button 
               onClick={handleSuggest}
               type="default"
-              style={{ marginBottom: '16px' }}
               loading={isSuggestLoading}
               disabled={isSuggestLoading || !canSuggest}
               title={!canSuggest ? "Fill in information about your child to suggest story" : ""}
@@ -276,11 +277,10 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
             </Button>
           </div>
 
-          <Divider orientation="left">Story Details</Divider>
           <div>
             <Form.Item
               name="title"
-              label="Story Title"
+              label="Title"
               rules={[{ required: true }]}
             >
               <Input placeholder="e.g., Sarah's Magical Adventure" />
@@ -288,7 +288,7 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
 
             <Form.Item
               name="bookTheme"
-              label="Book Theme"
+              label="Theme"
               rules={[{ required: true }]}
             >
               <Input placeholder="e.g., Adventure in space" />
