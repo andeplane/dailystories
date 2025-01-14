@@ -10,25 +10,10 @@ Try it out at: [https://andeplane.github.io/dailystories](https://andeplane.gith
 - Specify book themes, length, and other settings
 - View generated books in an interactive reader
 
-## Getting Started
+## Development
 
 1. Clone the repository
 2. Install dependencies with `npm install`
 3. Get an OpenAI API key from [OpenAI's website](https://openai.com)
 4. Start the development server with `npm start`
 5. Open [http://localhost:3000/dailystories](http://localhost:3000/dailystories) to view it in the browser
-
-## Development Requirements
-
-To develop or contribute to DailyStories, you'll need:
-
-- An OpenAI API key with access to:
-  - gpt-4o-mini for story generation
-  - DALL-E 3 for book cover and illustration generation
-
-### Environment Setup
-
-1. Create a free account on [OpenAI's platform](https://platform.openai.com)
-2. Generate an API key with sufficient credits for development
-3. The API key can be entered directly in the application's UI
-4. For development without UI input, create a `.env` file with:
