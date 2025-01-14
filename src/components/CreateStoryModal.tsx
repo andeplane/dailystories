@@ -339,7 +339,7 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
             </Form.Item>
           </div>
 
-          <Divider orientation="left">Book Settings</Divider>
+          <Divider orientation="left">Style</Divider>
           <div>
             <Form.Item
               name="language"
