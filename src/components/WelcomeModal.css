@@ -1,35 +1,42 @@
-.welcome-carousel {
-  width: 100%;
-}
-
-.welcome-carousel .slick-list,
-.welcome-carousel .slick-track {
-  width: 100% !important;
-  transform: none !important;
-}
-
 .welcome-carousel .slick-slide {
-  width: 100% !important;
-  position: absolute;
-  top: 0;
-  left: 0;
-  opacity: 0;
-  transition: opacity 0.3s ease-in-out;
-}
-
-.welcome-carousel .slick-slide.slick-active {
-  opacity: 1;
-  position: relative;
-}
-
-.welcome-carousel .slick-dots li button {
-  background: #1890ff !important;
-}
-
-.welcome-carousel .slick-dots li.slick-active button {
-  background: #1890ff !important;
-}
-
-.welcome-carousel .slick-dots li {
-  background: #1890ff;
-} 
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .welcome-carousel .slick-slide > div {
+    width: 100%;
+  }
+  
+  .welcome-carousel .slick-track {
+    display: flex;
+    align-items: center;
+  }
+  
+  .welcome-carousel .slick-slide img {
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    object-fit: contain;
+  }
+  
+  .welcome-carousel .slick-dots {
+    bottom: -30px;
+  }
+  
+  .welcome-carousel .slick-dots li button {
+    background: #d9d9d9;
+    border-radius: 50%;
+    width: 8px;
+    height: 8px;
+  }
+  
+  .welcome-carousel .slick-dots li.slick-active button {
+    background: #1890ff;
+  }
+  
+  .welcome-carousel .slick-dots li button:before {
+    content: '';
+  }
+  
+  

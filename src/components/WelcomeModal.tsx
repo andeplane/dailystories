@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Typography, Button, Space, Image, Carousel } from 'antd';
-import { BookOutlined, RocketOutlined, SmileOutlined } from '@ant-design/icons';
+import { EditOutlined, PictureOutlined, KeyOutlined } from '@ant-design/icons';
 import './WelcomeModal.css';
 
 const { Title, Paragraph } = Typography;
@@ -17,7 +17,8 @@ const carouselSlideStyle = {
 const carouselContainerStyle = {
   width: '100%',
   maxWidth: '800px',
-  margin: '0 auto'
+  margin: '0 auto',
+  paddingBottom: '30px'  // Add this line
 };
 
 const WelcomeModal: React.FC = () => {
@@ -37,7 +38,7 @@ const WelcomeModal: React.FC = () => {
 
   return (
     <Modal
-      title={<Title level={2}>Welcome to DailyStories!</Title>}
+      title={<Title level={2}>Welcome to Daily Stories</Title>}
       visible={isModalVisible}
       onOk={handleOk}
       onCancel={handleOk}
@@ -51,6 +52,7 @@ const WelcomeModal: React.FC = () => {
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <Paragraph>
           DailyStories is an AI-powered children's book generator that creates unique, personalized stories for your little ones.
+          Provide your own OpenAI API key to generate stories.
         </Paragraph>
         
         <div style={carouselContainerStyle}>
@@ -60,36 +62,60 @@ const WelcomeModal: React.FC = () => {
             className="welcome-carousel"
           >
             <div style={carouselSlideStyle}>
-              <Image
-                src="/dailystories/IMG_7738-portrait.png"
-                alt="Customize a story"
-                preview={false}
-                style={{ maxHeight: '450px', width: 'auto', objectFit: 'contain' }}
-              />
+              <div style={{ height: '450px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Image
+                  src="/dailystories/IMG_7740-portrait.png"
+                  alt="Read the book"
+                  preview={false}
+                  style={{ 
+                    maxHeight: '450px', 
+                    width: 'auto', 
+                    objectFit: 'contain',
+                    display: 'block',
+                    margin: '0 auto'
+                  }}
+                />
+              </div>
               <Paragraph style={{ textAlign: 'center', marginTop: '10px' }}>
-                Create a custom story for your child
+                Generate personalized stories with colorful illustrations
               </Paragraph>
             </div>
             <div style={carouselSlideStyle}>
-              <Image
-                src="/dailystories/IMG_7739-portrait.png"
-                alt="Generate using AI"
-                preview={false}
-                style={{ maxHeight: '450px', width: 'auto', objectFit: 'contain' }}
-              />
+              <div style={{ height: '450px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Image
+                  src="/dailystories/IMG_7738-portrait.png"
+                  alt="Customize a story"
+                  preview={false}
+                  style={{ 
+                    maxHeight: '450px', 
+                    width: 'auto', 
+                    objectFit: 'contain',
+                    display: 'block',
+                    margin: '0 auto'
+                  }}
+                />
+              </div>
+              <Paragraph style={{ textAlign: 'center', marginTop: '10px' }}>
+                Create a custom story for your child, with them as main character
+              </Paragraph>
+            </div>
+            <div style={carouselSlideStyle}>
+              <div style={{ height: '450px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Image
+                  src="/dailystories/IMG_7739-portrait.png"
+                  alt="Generate using AI"
+                  preview={false}
+                  style={{ 
+                    maxHeight: '450px', 
+                    width: 'auto', 
+                    objectFit: 'contain',
+                    display: 'block',
+                    margin: '0 auto'
+                  }}
+                />
+              </div>
               <Paragraph style={{ textAlign: 'center', marginTop: '10px' }}>
                 The story with illustrations is generated using AI
-              </Paragraph>
-            </div>
-            <div style={carouselSlideStyle}>
-              <Image
-                src="/dailystories/IMG_7740-portrait.png"
-                alt="Read the book"
-                preview={false}
-                style={{ maxHeight: '450px', width: 'auto', objectFit: 'contain' }}
-              />
-              <Paragraph style={{ textAlign: 'center', marginTop: '10px' }}>
-                Read the story on your phone
               </Paragraph>
             </div>
           </Carousel>
@@ -97,16 +123,16 @@ const WelcomeModal: React.FC = () => {
 
         <Space direction="vertical">
           <Space>
-            <BookOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
-            <Paragraph>Generate custom books with themes you choose</Paragraph>
+            <EditOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+            <Paragraph>Generate personalized stories your child want to hear</Paragraph>
           </Space>
           <Space>
-            <RocketOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
-            <Paragraph>Powered by advanced AI for creative and engaging stories</Paragraph>
+            <PictureOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+            <Paragraph>Beautiful illustrations generated by AI</Paragraph>
           </Space>
           <Space>
-            <SmileOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
-            <Paragraph>Create lasting memories with personalized adventures</Paragraph>
+            <KeyOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+            <Paragraph>Use your own OpenAI API key</Paragraph>
           </Space>
         </Space>
       </Space>
