@@ -1,8 +1,3 @@
-export interface OpenAIError extends Error {
-  status?: number;
-  message: string;
-}
-
 export interface StorySettings {
   title: string;
   childName: string;
@@ -43,16 +38,4 @@ export interface Story {
   pages: Page[];
   createdAt?: Date;
   isPreinstalled?: boolean;
-}
-
-export interface GenerationCallbacks {
-  onProgress: (progress: number, message: string) => void;
-  onOutline?: (outline: string) => void;
-  onPageUpdate?: (text: string, image: string | null) => void;
-  onCoverGenerated?: (coverImage: string) => void;
-}
-
-export interface PageTiming {
-  pageNum: number;
-  duration: number;
 }
