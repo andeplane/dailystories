@@ -22,7 +22,7 @@
       }
     },
     "references": [
-      { "path": "../../packages/shared" }
+      { "path": "../../packages/shared", "composite": true }
     ],
     "include": ["src"]
   }
