@@ -90,14 +90,14 @@ const CreateStoryProgressModal: React.FC<CreateStoryProgressModalProps> = ({
       generationAttempted.current = true;
       
       const generator = new StoryGenerator(settings);
-      const story = await generator.generateStory(
-        (progress, message) => {
+      const story = await generator.generateStory({
+        onProgress: (progress: number, message: string) => {
           setState(prev => ({ ...prev, progress, statusMessage: message }));
         },
-        (outline) => {
+        onOutline: (outline: string) => {
           setState(prev => ({ ...prev, storyOutline: outline }));
         },
-        (pageText, pageImage) => {
+        onPageUpdate: (pageText: string, pageImage: string | null) => {
           if (pageImage) {
             const currentTime = Date.now();
             pageTimings.push(currentTime - startTime);
@@ -109,10 +109,10 @@ const CreateStoryProgressModal: React.FC<CreateStoryProgressModalProps> = ({
             }));
           }
         },
-        (coverImage) => {
+        onCoverGenerated: (coverImage: string) => {
           setState(prev => ({ ...prev, coverImage }));
         }
-      );
+      });
       
       const totalTime = Date.now() - startTime;
       const averageTimePerPage = pageTimings.reduce((acc, time) => acc + time, 0) / pageTimings.length;
