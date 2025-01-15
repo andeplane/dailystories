@@ -1,8 +1,8 @@
 // src/utils/BookGenerator.ts
 
 import { OpenAIService } from "./OpenAIService";
+import { APIError as OpenAIError } from "openai";
 import {
-  OpenAIError,
   StorySettings,
   Page,
   Story,
@@ -506,4 +506,4 @@ ${storySoFar}`;
 }
 
 // Re-export StorySettings type for backward compatibility
-export type { StorySettings } from "../types/Story/";
+export type { StorySettings } from "../types/Story";
