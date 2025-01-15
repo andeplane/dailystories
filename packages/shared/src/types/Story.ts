@@ -39,20 +39,3 @@ export interface Story {
   createdAt?: Date;
   isPreinstalled?: boolean;
 }
-
-export interface PageTiming {
-  pageNum: number;
-  duration: number;
-}
-
-export interface GenerationCallbacks {
-  onProgress?: (progress: number, message: string) => void;
-  onOutline?: (outline: string) => void;
-  onPageUpdate?: (text: string, image: string | null) => void;
-  onCoverGenerated?: (coverImage: string) => void;
-}
-
-export interface OpenAIError extends Error {
-  status?: number;
-  message: string;
-}
