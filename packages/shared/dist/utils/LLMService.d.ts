@@ -1,3 +1,5 @@
+/// <reference types="node" />
+/// <reference types="node" />
 import { Buffer } from "buffer";
 export interface ChatMessage {
     role: "system" | "user" | "assistant";

@@ -23,11 +23,18 @@ jobs:
         with:
           node-version: "18"
 
-      - name: Install dependencies
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Build shared package
+        working-directory: ./packages/shared
+        run: npm run build
+
+      - name: Install frontend dependencies
         working-directory: ./apps/frontend
         run: npm install
 
-      - name: Build project
+      - name: Build frontend
         working-directory: ./apps/frontend
         run: npm run build
 

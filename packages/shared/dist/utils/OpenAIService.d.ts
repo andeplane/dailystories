@@ -1,3 +1,5 @@
+/// <reference types="node" />
+/// <reference types="node" />
 import { Buffer } from "buffer";
 import { LLMService, ImageGenerationOptions } from "./LLMService";
 export declare class OpenAIService extends LLMService {

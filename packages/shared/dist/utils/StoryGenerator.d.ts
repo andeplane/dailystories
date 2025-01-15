@@ -1,3 +1,4 @@
+import { Page } from "../types";
 export interface StorySettings {
     title: string;
     childName: string;

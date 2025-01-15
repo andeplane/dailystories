@@ -9,8 +9,15 @@
     "watch": "nodemon --watch src -e ts --exec 'tsc'"
   },
   "devDependencies": {
-    "typescript": "^4.9.5",
-    "nodemon": "^2.0.22"
+    "@types/node": "^18.19.70",
+    "nodemon": "^2.0.22",
+    "typescript": "^4.9.5"
   },
-  "files": ["dist"]
-} 
+  "dependencies": {
+    "buffer": "^6.0.3",
+    "openai": "^4.78.1"
+  },
+  "files": [
+    "dist"
+  ]
+}
