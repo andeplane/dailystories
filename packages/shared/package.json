@@ -9,8 +9,10 @@
     "watch": "nodemon --watch src -e ts --exec 'tsc'"
   },
   "devDependencies": {
-    "@types/node": "^18.19.70",
-    "nodemon": "^2.0.22",
+    "@types/node": "^18.19.70", 
+    "nodemon": "^2.0.22"
+  },
+  "peerDependencies": {
     "typescript": "^4.9.5"
   },
   "dependencies": {
