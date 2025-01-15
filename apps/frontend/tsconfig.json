@@ -15,8 +15,15 @@
       "isolatedModules": true,
       "noEmit": true,
       "jsx": "react-jsx",
-      "typeRoots": ["node_modules/@types", "src/custom.d.ts"]
+      "typeRoots": ["node_modules/@types", "src/custom.d.ts"],
+      "baseUrl": ".",
+      "paths": {
+        "@dailystories/shared": ["../../packages/shared/src"]
+      }
     },
+    "references": [
+      { "path": "../../packages/shared" }
+    ],
     "include": ["src"]
   }
   

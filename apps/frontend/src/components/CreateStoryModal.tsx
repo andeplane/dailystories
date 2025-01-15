@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Form, Input, InputNumber, Select, Divider, Button, message } from 'antd';
-import type { StorySettings } from '../utils/StoryGenerator';
-import { OpenAIService } from '../utils/OpenAIService';
+import type { StorySettings } from '@dailystories/shared';
+import { OpenAIService } from '@dailystories/shared';
 import CreateStoryProgressModal from './CreateStoryProgressModal';
-import { MixpanelService } from '../utils/MixpanelService';
+import { MixpanelService } from '@dailystories/shared';
 const { TextArea } = Input;
 
 interface CreateStoryModalProps {

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Story } from '../types/Story';
+import { Story } from '@dailystories/shared';
 import { openDB } from 'idb';
 import { stories as storiesData } from '../data/stories';
 

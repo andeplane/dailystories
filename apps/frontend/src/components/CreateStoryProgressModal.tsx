@@ -1,9 +1,9 @@
 import React from 'react';
 import { Modal, Progress, Typography, Card, Image } from 'antd';
-import type { StorySettings } from '../utils/StoryGenerator';
-import { StoryGenerator } from '../utils/StoryGenerator';
+import type { StorySettings } from '@dailystories/shared';
+import { StoryGenerator } from '@dailystories/shared';
 import { useStories } from '../contexts/StoryContext';
-import { MixpanelService } from '../utils/MixpanelService';
+import { MixpanelService } from '@dailystories/shared';
 
 const { Text, Paragraph } = Typography;
 

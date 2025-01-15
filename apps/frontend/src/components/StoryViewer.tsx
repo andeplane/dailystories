@@ -1,9 +1,9 @@
 import React from 'react';
 import { Typography, Image, Space, Card, Button } from 'antd';
-import { Story, Page } from '../types/Story';
+import { Story, Page } from '@dailystories/shared';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import { MixpanelService } from '../utils/MixpanelService';
+import { MixpanelService } from '@dailystories/shared';
 
 const { Title, Paragraph } = Typography;
 

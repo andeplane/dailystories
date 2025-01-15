@@ -1,0 +1,25 @@
+{
+  "name": "@dailystories/shared",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "watch": "nodemon --watch src -e ts --exec 'tsc'"
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.70", 
+    "nodemon": "^2.0.22"
+  },
+  "peerDependencies": {
+    "typescript": "^4.9.5"
+  },
+  "dependencies": {
+    "buffer": "^6.0.3",
+    "openai": "^4.78.1"
+  },
+  "files": [
+    "dist"
+  ]
+}

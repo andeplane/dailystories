@@ -1,0 +1,15 @@
+{
+  "name": "dailystories-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "start": "concurrently \"npm run watch --workspace=@dailystories/shared\" \"npm run start --workspace=dailystories\"",
+    "setup": "npm run build --workspace=@dailystories/shared"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.1"
+  }
+} 

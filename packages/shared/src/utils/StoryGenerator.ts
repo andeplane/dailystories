@@ -1,7 +1,7 @@
 // src/utils/BookGenerator.ts
 
 import { OpenAIService } from "./OpenAIService";
-import { Page } from "../types/Story";
+import { Story, Page } from "../types";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
