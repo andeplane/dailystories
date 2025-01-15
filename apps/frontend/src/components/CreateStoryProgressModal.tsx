@@ -90,26 +90,31 @@ const CreateStoryProgressModal: React.FC<CreateStoryProgressModalProps> = ({
       generationAttempted.current = true;
       
       const generator = new StoryGenerator(settings);
-      const story = await generator.generateStory({
-        onProgress: (progress: number, message: string) => {
-          setState(prev => ({ ...prev, progress, statusMessage: message }));
-        },
-        onOutline: (outline: string) => {
+      const story = await generator.generateStory((progress: number, message: string) => {
+        setState(prev => ({ ...prev, progress, statusMessage: message }));
+        
+        // Check if the message contains outline information
+        if (message.includes('outline:')) {
+          const outline = message.split('outline:')[1].trim();
           setState(prev => ({ ...prev, storyOutline: outline }));
-        },
-        onPageUpdate: (pageText: string, pageImage: string | null) => {
-          if (pageImage) {
-            const currentTime = Date.now();
-            pageTimings.push(currentTime - startTime);
-            
-            setState(prev => ({ 
-              ...prev, 
-              pageImages: [...prev.pageImages, pageImage],
-              pagesGenerated: prev.pagesGenerated + 1
-            }));
-          }
-        },
-        onCoverGenerated: (coverImage: string) => {
+        }
+        
+        // Check if the message contains page update information
+        if (message.includes('page_image:')) {
+          const pageImage = message.split('page_image:')[1].trim();
+          const currentTime = Date.now();
+          pageTimings.push(currentTime - startTime);
+          
+          setState(prev => ({ 
+            ...prev, 
+            pageImages: [...prev.pageImages, pageImage],
+            pagesGenerated: prev.pagesGenerated + 1
+          }));
+        }
+        
+        // Check if the message contains cover image information
+        if (message.includes('cover_image:')) {
+          const coverImage = message.split('cover_image:')[1].trim();
           setState(prev => ({ ...prev, coverImage }));
         }
       });
