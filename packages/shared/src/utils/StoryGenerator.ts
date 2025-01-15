@@ -1,37 +1,11 @@
 // src/utils/BookGenerator.ts
 
 import { OpenAIService } from "./OpenAIService";
-import { Story, Page } from "../types";
+import { APIError as OpenAIError } from "openai";
+import { StorySettings, Page, Story } from "../types/Story";
+import { GenerationCallbacks, PageTiming } from "../types/Generation";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-interface OpenAIError extends Error {
-  status?: number;
-  message: string;
-}
-
-export interface StorySettings {
-  title: string;
-  childName: string;
-  childAge: number;
-  childPreferences: {
-    colors?: string[];
-    interests?: string[];
-  };
-  otherCharacters?: { name: string; age: number; description: string }[];
-  bookTheme: string;
-  storylineInstructions?: string;
-  language: string;
-  illustrationStyle: string;
-  numPages: number;
-  models: {
-    outlineModel: string;
-    generationModel: string;
-    feedbackModel: string;
-    imageModel?: string;
-  };
-  openAIApiKey: string;
-}
 
 const formatTime = (ms: number): string => {
   const seconds = Math.floor(ms / 1000);
@@ -41,15 +15,13 @@ const formatTime = (ms: number): string => {
 
 export class StoryGenerator {
   private openai: OpenAIService;
-  private storySettings: StorySettings;
   private pages: Page[] = [];
   private storyOutline: string = "";
   private storySoFar: string = "";
   private storySummary: string = "";
 
-  constructor(bookSettings: StorySettings) {
-    this.openai = new OpenAIService(bookSettings.openAIApiKey);
-    this.storySettings = bookSettings;
+  constructor(private readonly storySettings: StorySettings) {
+    this.openai = new OpenAIService(storySettings.openAIApiKey);
   }
 
   async generateStoryOutline() {
@@ -333,14 +305,14 @@ ${storySoFar}`;
     throw new Error("Failed to generate cover image after maximum retries");
   }
 
-  async generateStory(
-    onProgress: (progress: number, message: string) => void,
-    onOutline?: (outline: string) => void,
-    onPageUpdate?: (text: string, image: string | null) => void,
-    onCoverGenerated?: (coverImage: string) => void
-  ) {
+  async generateStory({
+    onProgress,
+    onOutline,
+    onPageUpdate,
+    onCoverGenerated,
+  }: GenerationCallbacks) {
     const startTime = Date.now();
-    const pageTimings: { pageNum: number; duration: number }[] = [];
+    const pageTimings: PageTiming[] = [];
 
     const MAX_RETRIES = 3;
     const RETRY_DELAY = 1000;
@@ -527,3 +499,6 @@ ${storySoFar}`;
     };
   }
 }
+
+// Re-export StorySettings type for backward compatibility
+export type { StorySettings } from "../types/Story";
