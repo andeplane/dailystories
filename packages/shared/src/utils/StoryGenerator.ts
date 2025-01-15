@@ -2,13 +2,8 @@
 
 import { OpenAIService } from "./OpenAIService";
 import { APIError as OpenAIError } from "openai";
-import {
-  StorySettings,
-  Page,
-  Story,
-  GenerationCallbacks,
-  PageTiming,
-} from "../types/Story";
+import { StorySettings, Page, Story } from "../types/Story";
+import { GenerationCallbacks, PageTiming } from "../types/Generation";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -310,12 +305,12 @@ ${storySoFar}`;
     throw new Error("Failed to generate cover image after maximum retries");
   }
 
-  async generateStory(
-    onProgress: (progress: number, message: string) => void,
-    onOutline?: (outline: string) => void,
-    onPageUpdate?: (text: string, image: string | null) => void,
-    onCoverGenerated?: (coverImage: string) => void
-  ) {
+  async generateStory({
+    onProgress,
+    onOutline,
+    onPageUpdate,
+    onCoverGenerated,
+  }: GenerationCallbacks) {
     const startTime = Date.now();
     const pageTimings: PageTiming[] = [];
 
