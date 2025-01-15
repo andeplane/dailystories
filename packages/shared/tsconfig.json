@@ -10,6 +10,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src"],
+  "include": ["src", "src/types/Story/.ts"],
   "exclude": ["node_modules", "dist"]
 } 
