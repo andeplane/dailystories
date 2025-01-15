@@ -1,0 +1,34 @@
+name: PR Verification
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Build shared package
+        working-directory: ./packages/shared
+        run: npm run build
+
+      - name: Install frontend dependencies
+        working-directory: ./apps/frontend
+        run: npm install
+
+      - name: Build frontend
+        working-directory: ./apps/frontend
+        run: npm run build
