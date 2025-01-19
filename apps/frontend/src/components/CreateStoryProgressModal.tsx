@@ -90,7 +90,7 @@ const CreateStoryProgressModal: React.FC<CreateStoryProgressModalProps> = ({
       generationAttempted.current = true;
       
       const generator = new StoryGenerator(settings);
-      const story = await generator.generateStory((progress: number, message: string) => {
+      const onProgress = (progress: number, message: string) => {
         setState(prev => ({ ...prev, progress, statusMessage: message }));
         
         // Check if the message contains outline information
@@ -117,7 +117,8 @@ const CreateStoryProgressModal: React.FC<CreateStoryProgressModalProps> = ({
           const coverImage = message.split('cover_image:')[1].trim();
           setState(prev => ({ ...prev, coverImage }));
         }
-      });
+      };
+      const story = await generator.generateStory({onProgress});
       
       const totalTime = Date.now() - startTime;
       const averageTimePerPage = pageTimings.reduce((acc, time) => acc + time, 0) / pageTimings.length;
