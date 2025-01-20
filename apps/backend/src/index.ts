@@ -5,8 +5,17 @@ import express from "express";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import jwt from "jsonwebtoken";
+import cors from "cors";
 
 const app = express();
+
+// Add CORS middleware
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    credentials: true,
+  })
+);
 
 // Configure Passport with Google Strategy
 passport.use(
