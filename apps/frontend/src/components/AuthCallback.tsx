@@ -1,25 +1,28 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import axios from 'axios';
 import { message } from 'antd';
+
+function useQuery() {
+    return new URLSearchParams(useLocation().search);
+}
 
 const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
   const { setToken } = useAuth();
+  const query = useQuery();
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
+    const token = query.get('token');
     console.log('token', token);
     if (token) {
       setToken(token);
-      navigate('/dashboard'); // Redirect to your desired page within /dailystories
+      navigate('/');
     } else {
       message.error('Authentication failed.');
       navigate('/');
     }
-  }, [navigate, setToken]);
+  }, [navigate, setToken, query]);
 
   return <div>Authenticating...</div>;
 };

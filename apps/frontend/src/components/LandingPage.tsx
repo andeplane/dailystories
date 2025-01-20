@@ -1,6 +1,6 @@
 // src/components/LandingPage.tsx
 import React, { useState } from 'react';
-import { Card, Row, Col, Popconfirm, Tooltip, Input, Button, Select } from 'antd';
+import { Card, Row, Col, Popconfirm, Tooltip, Input, Button, Select, message } from 'antd';
 import { PlusOutlined, DeleteOutlined, SettingOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useStories } from '../contexts/StoryContext';
@@ -8,6 +8,7 @@ import { Story } from '@dailystories/shared';
 import CreateStoryModal from './CreateStoryModal';
 import { StorySettings } from '@dailystories/shared';
 import { MixpanelService } from '@dailystories/shared';
+import { useAuth } from '../contexts/AuthContext';
 
 const { Meta } = Card;
 
@@ -47,6 +48,7 @@ const LandingPage: React.FC = () => {
   const [selectedModel, setSelectedModel] = useState<string>(() => {
     return localStorage.getItem(OPENAI_MODEL_STORAGE) || 'gpt-4o-mini';
   });
+  const { token } = useAuth();
 
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newKey = e.target.value;
@@ -79,6 +81,29 @@ const LandingPage: React.FC = () => {
   const handleDeleteStory = (e: React.MouseEvent, storyId: string) => {
     e.stopPropagation(); // Prevent card click event
     deleteStory(storyId);
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = 'http://localhost:5001/auth/google';
+  };
+
+  const testAuth = async () => {
+    try {
+      const response = await fetch('http://localhost:5001/protected', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.text();
+        message.success(data);
+      } else {
+        message.error('Authentication failed');
+      }
+    } catch (error) {
+      message.error('Error testing authentication');
+    }
   };
 
   return (
@@ -213,6 +238,16 @@ const LandingPage: React.FC = () => {
                 style={{ marginBottom: '16px' }}
               >
                 API Settings
+              </Button>
+            )}
+          </Col>
+          <Col>
+            <Button onClick={handleGoogleLogin} type="primary" style={{ marginRight: '10px' }}>
+              Login with Google
+            </Button>
+            {token && (
+              <Button onClick={testAuth}>
+                Test Auth
               </Button>
             )}
           </Col>

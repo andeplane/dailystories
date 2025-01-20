@@ -14,13 +14,21 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      callbackURL: "/auth/google/callback",
+      callbackURL:
+        process.env.GOOGLE_CALLBACK_URL ||
+        "http://localhost:5001/auth/google/callback",
     },
     function (accessToken, refreshToken, profile, cb) {
       // Here, you would typically associate the Google account with a user record in your database.
       return cb(null, profile);
     }
   )
+);
+
+console.log(
+  "redirect url: ",
+  process.env.GOOGLE_CALLBACK_URL ||
+    "http://localhost:5001/auth/google/callback"
 );
 
 app.use(passport.initialize());
@@ -36,13 +44,21 @@ app.get(
   "/auth/google/callback",
   passport.authenticate("google", { session: false, failureRedirect: "/" }),
   (req, res) => {
-    // Generate JWT Token
-    const token = jwt.sign(
-      { id: (req.user as any).id },
-      process.env.JWT_SECRET!,
-      { expiresIn: "1h" }
-    );
-    res.json({ token });
+    try {
+      const token = jwt.sign(
+        { id: (req.user as any).id },
+        process.env.JWT_SECRET!,
+        { expiresIn: "1h" }
+      );
+      res.redirect(
+        `http://localhost:3000/dailystories#/auth/callback?token=${token}`
+      );
+    } catch (error) {
+      console.error("Error in callback:", error);
+      res.redirect(
+        "http://localhost:3000/dailystories#/auth/callback?error=true"
+      );
+    }
   }
 );
 
@@ -67,7 +83,10 @@ function authenticateToken(
 
 // Protected Route
 app.get("/protected", authenticateToken, (req, res) => {
-  res.send("This is a protected route");
+  res.json({
+    message: "This is a protected route",
+    user: req.user,
+  });
 });
 
 const PORT = process.env.PORT || 5000;
