@@ -7,9 +7,14 @@
   ],
   "scripts": {
     "start": "concurrently \"npm run watch --workspace=@dailystories/shared\" \"npm run start --workspace=dailystories\"",
+    "start:frontend": "concurrently \"npm run watch --workspace=@dailystories/shared\" \"npm run start --workspace=dailystories/frontend\"",
+    "start:backend": "concurrently \"npm run watch --workspace=@dailystories/shared\" \"npm run start --workspace=dailystories/backend\"",
     "setup": "npm run build --workspace=@dailystories/shared"
   },
   "devDependencies": {
     "concurrently": "^8.0.1"
+  },
+  "dependencies": {
+    "eventsource": "^3.0.2"
   }
-} 
+}

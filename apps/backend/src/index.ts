@@ -6,6 +6,7 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import jwt from "jsonwebtoken";
 import cors from "cors";
+import { StoryGenerator, StorySettings } from "@dailystories/shared";
 
 const app = express();
 
@@ -96,6 +97,66 @@ app.get("/protected", authenticateToken, (req, res) => {
     message: "This is a protected route",
     user: req.user,
   });
+});
+
+// Add JSON parsing middleware
+app.use(express.json());
+
+// Protected endpoint to generate a story
+app.post("/api/generate-story", authenticateToken, async (req, res) => {
+  try {
+    const storySettings: StorySettings = req.body;
+
+    // Set response headers for SSE
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    const generator = new StoryGenerator(storySettings);
+
+    // Create callback functions that send SSE events
+    const callbacks = {
+      onProgress: (progress: number, message: string) => {
+        res.write(
+          `data: ${JSON.stringify({ type: "progress", progress, message })}\n\n`
+        );
+      },
+      onOutline: (outline: string) => {
+        res.write(`data: ${JSON.stringify({ type: "outline", outline })}\n\n`);
+      },
+      onPageUpdate: (text: string, illustration: string | null) => {
+        res.write(
+          `data: ${JSON.stringify({
+            type: "pageUpdate",
+            text,
+            illustration,
+          })}\n\n`
+        );
+      },
+      onCoverGenerated: (coverImage: string) => {
+        res.write(
+          `data: ${JSON.stringify({ type: "coverGenerated", coverImage })}\n\n`
+        );
+      },
+    };
+
+    // Generate the story
+    const story = await generator.generateStory(callbacks);
+
+    // Send the final story data
+    res.write(`data: ${JSON.stringify({ type: "complete", story })}\n\n`);
+    res.end();
+  } catch (error) {
+    console.error("Error generating story:", error);
+    // Send error event
+    res.write(
+      `data: ${JSON.stringify({
+        type: "error",
+        message: "Failed to generate story",
+      })}\n\n`
+    );
+    res.end();
+  }
 });
 
 const PORT = process.env.PORT || 5000;

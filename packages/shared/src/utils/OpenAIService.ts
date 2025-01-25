@@ -1,9 +1,9 @@
 import OpenAI from "openai";
-import { Buffer } from "buffer";
+// import { Buffer } from "buffer";
 import { LLMService, ImageGenerationOptions } from "./LLMService";
 
 // Make it globally available if needed:
-(window as any).Buffer = Buffer;
+// (window as any).Buffer = Buffer;
 
 export class OpenAIService extends LLMService {
   private openai: OpenAI;
