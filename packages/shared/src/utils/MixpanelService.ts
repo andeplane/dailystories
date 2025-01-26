@@ -13,7 +13,7 @@ if (!isLocalhost) {
 }
 
 // Generate or retrieve user ID
-const getUserId = () => {
+const getUserId = (): string => {
   return "abc";
   // const storageKey = "user_id";
   // let userId = localStorage.getItem(storageKey);
