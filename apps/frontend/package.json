@@ -13,6 +13,7 @@
     "antd": "^5.23.0",
     "buffer": "^6.0.3",
     "cra-template-typescript": "1.2.0",
+    "firebase": "^11.5.0",
     "mixpanel-browser": "^2.58.0",
     "openai": "^4.78.1",
     "react": "^19.0.0",

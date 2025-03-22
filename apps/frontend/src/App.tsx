@@ -9,6 +9,7 @@ import { StoryProvider, useStories } from './contexts/StoryContext';
 import { Story } from '@dailystories/shared';
 import WelcomeModal from './components/WelcomeModal';
 import { MixpanelService } from '@dailystories/shared';
+import { AuthProvider } from './contexts/AuthContext';
 
 const StoryRoute = () => {
   const { id } = useParams();
@@ -31,15 +32,17 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <StoryProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/story/:id" element={<StoryRoute />} />
-        </Routes>
-        <WelcomeModal />
-      </Router>
-    </StoryProvider>
+    <AuthProvider>
+      <StoryProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/story/:id" element={<StoryRoute />} />
+          </Routes>
+          <WelcomeModal />
+        </Router>
+      </StoryProvider>
+    </AuthProvider>
   );
 };
 
