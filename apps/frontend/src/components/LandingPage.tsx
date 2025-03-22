@@ -1,23 +1,16 @@
 // src/components/LandingPage.tsx
 import React, { useState } from 'react';
-import { Card, Row, Col, Popconfirm, Tooltip, Input, Button, Select } from 'antd';
-import { PlusOutlined, DeleteOutlined, SettingOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Popconfirm, Tooltip, Button } from 'antd';
+import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useStories } from '../contexts/StoryContext';
 import { Story } from '@dailystories/shared';
 import CreateStoryModal from './CreateStoryModal';
 import { StorySettings } from '@dailystories/shared';
 import { MixpanelService } from '@dailystories/shared';
+import LoginButton from './LoginButton';
 
 const { Meta } = Card;
-
-const OPENAI_KEY_STORAGE = 'openai_api_key';
-const OPENAI_MODEL_STORAGE = 'openai_model';
-const MODEL_OPTIONS = [
-  { label: 'gpt-4o', value: 'gpt-4o' },
-  { label: 'gpt-4o-mini', value: 'gpt-4o-mini' },
-  { label: 'o1-preview', value: 'o1-preview' },
-];
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -40,22 +33,8 @@ const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { stories, addStory, deleteStory } = useStories();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [apiKey, setApiKey] = useState<string>(() => {
-    return localStorage.getItem(OPENAI_KEY_STORAGE) || '';
-  });
-  const [showApiSettings, setShowApiSettings] = useState(() => !localStorage.getItem(OPENAI_KEY_STORAGE));
-  const [selectedModel, setSelectedModel] = useState<string>(() => {
-    return localStorage.getItem(OPENAI_MODEL_STORAGE) || 'gpt-4o-mini';
-  });
-
-  const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newKey = e.target.value;
-    setApiKey(newKey);
-    localStorage.setItem(OPENAI_KEY_STORAGE, newKey);
-  };
 
   const handleCreateNew = () => {
-    if (!apiKey) return; // Early return if no API key
     MixpanelService.trackNewStoryClick();
     setIsModalOpen(true);
   };
@@ -76,14 +55,27 @@ const LandingPage: React.FC = () => {
     navigate(`/story/${bookId}`);
   };
 
-  const handleDeleteStory = (e: React.MouseEvent, storyId: string) => {
-    e.stopPropagation(); // Prevent card click event
+  const handleDeleteStory = (storyId: string) => {
     deleteStory(storyId);
   };
 
   return (
     <>
       <div style={{ padding: '20px' }}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          marginBottom: '24px',
+          padding: '16px',
+          backgroundColor: '#fff',
+          borderRadius: '8px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        }}>
+          <h1 style={{ margin: 0 }}>Daily Stories</h1>
+          <LoginButton />
+        </div>
+
         <a
           href="https://github.com/andeplane/dailystories"
           className="github-corner"
@@ -146,78 +138,6 @@ const LandingPage: React.FC = () => {
         `}
         </style>
 
-        <Row style={{ marginBottom: '24px' }}>
-          <Col xs={24} sm={24} md={12} lg={8}>
-            {showApiSettings ? (
-              <div>
-                <div style={{ marginBottom: '16px' }}>
-                  <Button 
-                    icon={<SettingOutlined />}
-                    onClick={() => setShowApiSettings(false)}
-                  >
-                    Hide Settings
-                  </Button>
-                </div>
-                <div style={{ display: 'flex', marginBottom: '16px' }}>
-                  <div style={{ width: '120px', paddingTop: '4px' }}>
-                    OpenAI API Key:
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <Input.Password
-                      value={apiKey}
-                      onChange={handleApiKeyChange}
-                      placeholder="Enter your OpenAI API key"
-                    />
-                    <div style={{ fontSize: '12px', marginTop: '4px', color: 'rgba(0, 0, 0, 0.45)' }}>
-                      {!apiKey ? (
-                        <>
-                          Enter your{' '}
-                          <a 
-                            href="https://platform.openai.com/docs/quickstart"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            OpenAI API key
-                          </a>
-                          . The API key is only stored locally.
-                        </>
-                      ) : (
-                        "✓ API key saved in your browser's local storage"
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex' }}>
-                  <div style={{ width: '120px', paddingTop: '4px' }}>Model:</div>
-                  <div style={{ flex: 1 }}>
-                    <Select
-                      value={selectedModel}
-                      onChange={(value) => {
-                        setSelectedModel(value);
-                        localStorage.setItem(OPENAI_MODEL_STORAGE, value);
-                      }}
-                      options={MODEL_OPTIONS}
-                      style={{ width: '100%' }}
-                    />
-                    <div style={{ fontSize: '12px', marginTop: '4px', color: 'rgba(0, 0, 0, 0.45)' }}>
-                      Select the OpenAI model to use for story generation.
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <Button 
-                icon={<SettingOutlined />}
-                onClick={() => setShowApiSettings(true)}
-                style={{ marginBottom: '16px' }}
-              >
-                API Settings
-              </Button>
-            )}
-          </Col>
-        </Row>
-
         <Row gutter={[16, 16]}>
           <Col
             xs={24}
@@ -226,34 +146,30 @@ const LandingPage: React.FC = () => {
             lg={8}
             xl={6}
           >
-            <Tooltip title={!apiKey ? "Please enter your OpenAI API key first" : "Create a new story"}>
+            <Tooltip title="Create a new story">
               <Card
-                hoverable={!!apiKey}
+                hoverable
                 style={{
                   height: '100%',
-                  cursor: apiKey ? 'pointer' : 'not-allowed',
-                  opacity: apiKey ? 1 : 0.5,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                  padding: '20px',
+                  backgroundColor: '#fafafa'
                 }}
                 onClick={handleCreateNew}
-                cover={
-                  <div
-                    style={{
-                      height: '200px',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      backgroundColor: '#f0f0f0',
-                    }}
-                  >
-                    <PlusOutlined style={{ fontSize: '48px', color: '#999' }} />
-                  </div>
-                }
               >
-                <Meta title="Generate New Story" />
+                <PlusOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
+                <Meta
+                  title="Create New Story"
+                  description="Start writing a new story"
+                />
               </Card>
             </Tooltip>
           </Col>
-
           {stories.map((story: Story) => (
             <Col
               key={story.id}
@@ -263,89 +179,63 @@ const LandingPage: React.FC = () => {
               lg={8}
               xl={6}
             >
-              <Tooltip title={story.summary}>
-                <Card
-                  hoverable
-                  onClick={() => handleBookClick(story.id)}
-                  cover={
-                    story.coverImageBase64 ? (
-                      <img
-                        alt={story.title}
-                        src={`data:image/png;base64,${story.coverImageBase64}`}
-                        style={{ objectFit: 'cover', height: '200px', width: '100%' }}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          height: '200px',
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          backgroundColor: '#f0f0f0',
-                        }}
-                      >
-                        <span>No Image</span>
-                      </div>
-                    )
-                  }
+              <Card
+                hoverable
+                style={{ height: '100%', cursor: 'pointer' }}
+                onClick={() => handleBookClick(story.id)}
+                cover={
+                  story.coverImageBase64 ? (
+                    <img
+                      alt={story.title}
+                      src={story.coverImageBase64}
+                      style={{ height: '200px', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        height: '200px',
+                        backgroundColor: '#f0f0f0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#999'
+                      }}
+                    >
+                      No Cover Image
+                    </div>
+                  )
+                }
+              >
+                <Meta
+                  title={story.title}
+                  description={story.summary}
+                />
+                <Popconfirm
+                  title="Are you sure you want to delete this story?"
+                  onConfirm={() => handleDeleteStory(story.id)}
+                  okText="Yes"
+                  cancelText="No"
                 >
-                  <Meta
-                    title={
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ 
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          marginRight: '8px'
-                        }}>
-                          {story.title}
-                        </span>
-                        {!story.isPreinstalled && (
-                          <Popconfirm
-                            title="Delete this story?"
-                            description="This action cannot be undone."
-                            onConfirm={(e) => handleDeleteStory(e as React.MouseEvent, story.id)}
-                            onCancel={(e) => e?.stopPropagation()}
-                            okText="Yes"
-                            cancelText="No"
-                          >
-                            <div onClick={(e) => e.stopPropagation()}>
-                              <DeleteOutlined style={{ 
-                                color: '#ff4d4f',
-                                flexShrink: 0
-                              }} />
-                            </div>
-                          </Popconfirm>
-                        )}
-                      </div>
-                    }
+                  <Button
+                    type="text"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteStory(story.id);
+                    }}
                   />
-                </Card>
-              </Tooltip>
+                </Popconfirm>
+              </Card>
             </Col>
           ))}
         </Row>
-
-        <CreateStoryModal 
-          open={isModalOpen}
-          onCancel={() => setIsModalOpen(false)}
-          onSubmit={(settings) => {
-            handleModalSubmit({ 
-              ...settings, 
-              openAIApiKey: apiKey,
-              models: {
-                ...settings.models,
-                outlineModel: selectedModel,
-                generationModel: selectedModel,
-                feedbackModel: selectedModel,
-                imageModel: 'dall-e-3'
-              }
-            });
-          }}
-          apiKey={apiKey}
-          selectedModel={selectedModel}
-        />
       </div>
+      <CreateStoryModal
+        open={isModalOpen}
+        onCancel={() => setIsModalOpen(false)}
+        onSubmit={handleModalSubmit}
+      />
       <Footer />
     </>
   );

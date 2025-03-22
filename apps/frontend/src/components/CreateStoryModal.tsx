@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Form, Input, InputNumber, Select, Divider, Button, message } from 'antd';
 import type { StorySettings } from '@dailystories/shared';
-import { OpenAIService } from '@dailystories/shared';
 import CreateStoryProgressModal from './CreateStoryProgressModal';
 import { MixpanelService } from '@dailystories/shared';
+import { useAuth } from '../contexts/AuthContext';
 const { TextArea } = Input;
 
 interface CreateStoryModalProps {
   open: boolean;
   onCancel: () => void;
   onSubmit: (settings: StorySettings) => void;
-  apiKey: string;
-  selectedModel: string;
 }
 
 const STORAGE_KEY = 'book_settings_preferences';
@@ -26,7 +24,8 @@ const extractJSON = (text: string): string => {
   return text;
 };
 
-const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onSubmit, apiKey, selectedModel }) => {
+const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onSubmit }) => {
+  const { idToken } = useAuth();
   const [form] = Form.useForm();
   const [isSuggestLoading, setIsSuggestLoading] = useState(false);
   const [canSuggest, setCanSuggest] = useState(false);
@@ -44,9 +43,9 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
       form.setFieldsValue(preferences);
       // Check fields after setting values
       const values = form.getFieldsValue();
-      setCanSuggest(Boolean(values.childName && values.childAge && apiKey));
+      setCanSuggest(Boolean(values.childName && values.childAge));
     }
-  }, [form, open, apiKey]);
+  }, [form, open]);
 
   // Save preferences on field changes
   const handleFieldChange = () => {
@@ -82,17 +81,17 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
 
       const settings: StorySettings = {
         ...values,
+        bookTheme: values.theme,
         childPreferences: {
           interests: values.interests?.split(',').map((i: string) => i.trim()),
           colors: values.colors?.split(',').map((c: string) => c.trim()),
         },
         models: {
-          outlineModel: selectedModel,
-          generationModel: selectedModel,
-          feedbackModel: selectedModel,
+          outlineModel: 'gpt-4o-mini',
+          generationModel: 'gpt-4o-mini',
+          feedbackModel: 'gpt-4o-mini',
           imageModel: 'dall-e-3'
-        },
-        openAIApiKey: apiKey
+        }
       };
 
       setGenerationSettings(settings);
@@ -114,69 +113,54 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
       return;
     }
 
-    if (!apiKey) {
-      message.error('API key is missing');
+    if (!idToken) {
+      message.error('Authentication required');
       return;
     }
 
     setIsSuggestLoading(true);
     try {
-      const openai = new OpenAIService(apiKey);
-      
-      const systemPrompt = `You are a children's book idea generator. Generate a creative story idea for a child. 
-                     Respond in JSON format with three fields: 
-                     "title" (an engaging title including the child's name),
-                     "theme" (a short theme description),
-                     "storyline" (one sentence about the story).
-                     Make it age-appropriate and incorporate their interests if provided.
-                     Respond in the specified language.`;
+      const response = await fetch('http://localhost:8000/api/suggest-story', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          childName,
+          childAge,
+          interests,
+          language
+        })
+      });
 
-      const userPrompt = `Generate a story idea for:
-                     Name: ${childName}
-                     Age: ${childAge}
-                     Interests: ${interests || 'not specified'}
-                     Language: ${language}`;
-
-      console.log('Sending request to OpenAI with:', { userPrompt, systemPrompt });
-      
-      const response = await openai.generateCompletion(
-        userPrompt,
-        selectedModel,
-        16384,
-        systemPrompt
-      );
-      
-      console.log('Received response:', response);
-
-      try {
-        const cleanResponse = extractJSON(response);
-        const suggestion = JSON.parse(cleanResponse);
-        
-        form.setFieldsValue({
-          title: suggestion.title,
-          theme: suggestion.theme,
-          storylineInstructions: suggestion.storyline
-        });
-        
-        const allValues = form.getFieldsValue();
-        const valid = Boolean(
-          allValues.title &&
-          allValues.theme &&
-          allValues.storylineInstructions &&
-          allValues.childName &&
-          allValues.childAge &&
-          allValues.language &&
-          allValues.illustrationStyle &&
-          allValues.numPages
-        );
-        setIsFormValid(valid);
-        
-        message.success('Story suggestion generated successfully!');
-      } catch (parseError) {
-        console.error('Failed to parse OpenAI response:', parseError);
-        console.error('Raw response:', response);
-        message.error('Received invalid response format from AI');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+
+      const suggestion = await response.json();
+      
+      form.setFieldsValue({
+        title: suggestion.title,
+        theme: suggestion.theme,
+        storylineInstructions: suggestion.storyline
+      });
+      
+      const allValues = form.getFieldsValue();
+      const valid = Boolean(
+        allValues.title &&
+        allValues.theme &&
+        allValues.storylineInstructions &&
+        allValues.childName &&
+        allValues.childAge &&
+        allValues.language &&
+        allValues.illustrationStyle &&
+        allValues.numPages
+      );
+      setIsFormValid(valid);
+      
+      message.success('Story suggestion generated successfully!');
     } catch (error) {
       console.error('Failed to generate suggestion:', error);
       message.error(
@@ -193,10 +177,10 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
   useEffect(() => {
     const checkFields = () => {
       const values = form.getFieldsValue();
-      setCanSuggest(Boolean(values.childName && values.childAge && apiKey));
+      setCanSuggest(Boolean(values.childName && values.childAge));
     };
     checkFields();
-  }, [form, apiKey]);
+  }, [form]);
 
   const handleModalClose = () => {
     // Add tracking
@@ -208,7 +192,7 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
 
   const handleValuesChange = (changedValues: any, allValues: any) => {
     handleFieldChange();
-    setCanSuggest(Boolean(allValues.childName && allValues.childAge && apiKey));
+    setCanSuggest(Boolean(allValues.childName && allValues.childAge));
     
     const valid = Boolean(
       allValues.title &&
@@ -402,6 +386,7 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
           settings={generationSettings}
           estimatedTime={estimatedTime}
           elapsedTime={elapsedTime}
+          idToken={idToken}
         />
       )}
     </>

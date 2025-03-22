@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Progress, Typography, Card, Image } from 'antd';
 import type { StorySettings } from '@dailystories/shared';
-import { StoryGenerator } from '@dailystories/shared';
 import { useStories } from '../contexts/StoryContext';
 import { MixpanelService } from '@dailystories/shared';
 
@@ -13,6 +12,7 @@ interface CreateStoryProgressModalProps {
   settings: StorySettings;
   estimatedTime: number;
   elapsedTime: number;
+  idToken: string | null;
 }
 
 interface GenerationState {
@@ -35,11 +35,12 @@ const CreateStoryProgressModal: React.FC<CreateStoryProgressModalProps> = ({
   onCancel, 
   settings,
   estimatedTime,
-  elapsedTime
+  elapsedTime,
+  idToken
 }) => {
-  const [state, setState] = React.useState<GenerationState>({
+  const [generationState, setGenerationState] = useState<GenerationState>({
     progress: 0,
-    statusMessage: '',
+    statusMessage: 'Initializing story generation...',
     storyOutline: '',
     coverImage: '',
     pageImages: [],
@@ -49,109 +50,130 @@ const CreateStoryProgressModal: React.FC<CreateStoryProgressModalProps> = ({
   const [isGenerating, setIsGenerating] = React.useState(false);
   const generationAttempted = React.useRef(false);
   const [timeRemaining, setTimeRemaining] = React.useState(0);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
 
   const calculateEstimatedTime = React.useCallback(() => {
-    const remainingPages = settings.numPages - state.pagesGenerated;
+    const remainingPages = settings.numPages - generationState.pagesGenerated;
     return remainingPages * 30;
-  }, [settings.numPages, state.pagesGenerated]);
+  }, [settings.numPages, generationState.pagesGenerated]);
 
-  React.useEffect(() => {
-    if (isGenerating) {
-      setTimeRemaining(calculateEstimatedTime());
+  useEffect(() => {
+    if (!open || !idToken || generationAttempted.current || isGenerating) return;
+
+    const startGeneration = async () => {
+      // Create new AbortController for this request
+      abortControllerRef.current = new AbortController();
       
-      const timer = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev <= 0) {
-            clearInterval(timer);
-            return 0;
-          }
-          return prev - 1;
+      try {
+        setIsGenerating(true);
+        generationAttempted.current = true;
+
+        // Start the story generation
+        const response = await fetch('http://localhost:8000/api/generatestory', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
+          body: JSON.stringify({ settings }),
+          signal: abortControllerRef.current.signal
         });
-      }, 1000);
 
-      return () => clearInterval(timer);
-    }
-  }, [isGenerating, state.pagesGenerated, settings.numPages, calculateEstimatedTime]);
-
-  React.useEffect(() => {
-    if (isGenerating) {
-      setTimeRemaining(calculateEstimatedTime());
-    }
-  }, [state.pagesGenerated, calculateEstimatedTime, isGenerating]);
-
-  const generateBook = React.useCallback(async () => {
-    if (generationAttempted.current) return;
-    
-    const startTime = Date.now();
-    const pageTimings: number[] = [];
-    
-    try {
-      setIsGenerating(true);
-      generationAttempted.current = true;
-      
-      const generator = new StoryGenerator(settings);
-      const onProgress = (progress: number, message: string) => {
-        setState(prev => ({ ...prev, progress, statusMessage: message }));
-        
-        // Check if the message contains outline information
-        if (message.includes('outline:')) {
-          const outline = message.split('outline:')[1].trim();
-          setState(prev => ({ ...prev, storyOutline: outline }));
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
+
+        const { session_id } = await response.json();
+        console.log('Got session ID:', session_id);
+
+        // Connect to WebSocket for progress updates
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${wsProtocol}//${window.location.hostname}:8000/ws/story/${session_id}?token=${idToken}`;
+        console.log('Connecting to WebSocket:', wsUrl);
         
-        // Check if the message contains page update information
-        if (message.includes('page_image:')) {
-          const pageImage = message.split('page_image:')[1].trim();
-          const currentTime = Date.now();
-          pageTimings.push(currentTime - startTime);
-          
-          setState(prev => ({ 
-            ...prev, 
-            pageImages: [...prev.pageImages, pageImage],
-            pagesGenerated: prev.pagesGenerated + 1
+        const ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+          console.log('WebSocket connection established');
+        };
+
+        ws.onmessage = (event) => {
+          console.log('WebSocket message received:', event.data);
+          const data = JSON.parse(event.data);
+          setGenerationState(prev => ({
+            ...prev,
+            progress: data.progress || prev.progress,
+            statusMessage: data.message || prev.statusMessage,
+            storyOutline: data.storyOutline || prev.storyOutline,
+            coverImage: data.coverImage || prev.coverImage,
+            pageImages: data.pageImages || prev.pageImages,
+            pagesGenerated: data.pagesGenerated || prev.pagesGenerated
+          }));
+
+          if (data.status === 'completed') {
+            console.log('Story generation completed');
+            ws.close();
+            addStory(data.story);
+            onCancel();
+          } else if (data.status === 'error') {
+            console.error('Story generation error:', data.error);
+            ws.close();
+            setGenerationState(prev => ({
+              ...prev,
+              statusMessage: `Error: ${data.error || 'Failed to generate story'}`
+            }));
+          }
+        };
+
+        ws.onerror = (error) => {
+          console.error('WebSocket error:', error);
+          setGenerationState(prev => ({
+            ...prev,
+            statusMessage: 'Error: Connection lost. Please try again.'
+          }));
+          setIsGenerating(false);
+        };
+
+        ws.onclose = (event) => {
+          console.log('WebSocket closed:', event.code, event.reason);
+          setIsGenerating(false);
+        };
+
+        return () => {
+          ws.close();
+          if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+          }
+        };
+      } catch (error: unknown) {
+        // Only show error if it's not an abort error
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.error('Error starting story generation:', error);
+          setGenerationState(prev => ({
+            ...prev,
+            statusMessage: 'Error: Failed to start story generation. Please try again.'
           }));
         }
-        
-        // Check if the message contains cover image information
-        if (message.includes('cover_image:')) {
-          const coverImage = message.split('cover_image:')[1].trim();
-          setState(prev => ({ ...prev, coverImage }));
-        }
-      };
-      const story = await generator.generateStory({onProgress});
-      
-      const totalTime = Date.now() - startTime;
-      const averageTimePerPage = pageTimings.reduce((acc, time) => acc + time, 0) / pageTimings.length;
-      
-      MixpanelService.trackStoryGeneration(settings, {
-        totalTime,
-        averageTimePerPage,
-        numPages: settings.numPages
-      });
+        setIsGenerating(false);
+      }
+    };
 
-      await addStory(story);
-      onCancel();
-    } catch (error) {
-      console.error('Error generating book:', error);
-      setState(prev => ({ 
-        ...prev, 
-        statusMessage: 'Error generating book. Please try again.' 
-      }));
-    } finally {
-      setIsGenerating(false);
-    }
-  }, [settings, addStory, onCancel]);
+    startGeneration();
 
-  React.useEffect(() => {
-    if (open && !isGenerating && !generationAttempted.current) {
-      generateBook();
-    }
-  }, [open, generateBook, isGenerating]);
+    // Cleanup function
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [open, settings, idToken, addStory, onCancel, isGenerating]);
 
   React.useEffect(() => {
     if (!open) {
+      // Reset all state when modal closes
       generationAttempted.current = false;
-      setState({
+      setIsGenerating(false);
+      setGenerationState({
         progress: 0,
         statusMessage: '',
         storyOutline: '',
@@ -159,8 +181,17 @@ const CreateStoryProgressModal: React.FC<CreateStoryProgressModalProps> = ({
         pageImages: [],
         pagesGenerated: 0
       });
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
     }
   }, [open]);
+
+  React.useEffect(() => {
+    if (isGenerating) {
+      setTimeRemaining(calculateEstimatedTime());
+    }
+  }, [generationState.pagesGenerated, calculateEstimatedTime, isGenerating]);
 
   return (
     <Modal
@@ -175,8 +206,8 @@ const CreateStoryProgressModal: React.FC<CreateStoryProgressModalProps> = ({
     >
       <div style={{ textAlign: 'center', padding: '12px' }}>
         <Progress 
-          percent={Math.round(state.progress)} 
-          status={state.progress === 100 ? 'success' : 'active'}
+          percent={Math.round(generationState.progress)} 
+          status={generationState.progress === 100 ? 'success' : 'active'}
         />
         
         {isGenerating && (
@@ -188,10 +219,10 @@ const CreateStoryProgressModal: React.FC<CreateStoryProgressModalProps> = ({
         )}
 
         <Text style={{ display: 'block', margin: '16px 0' }}>
-          {state.statusMessage}
+          {generationState.statusMessage}
         </Text>
 
-        {(state.storyOutline || state.coverImage) && (
+        {(generationState.storyOutline || generationState.coverImage) && (
           <Card 
             title="Story Preview" 
             style={{ 
@@ -205,9 +236,9 @@ const CreateStoryProgressModal: React.FC<CreateStoryProgressModalProps> = ({
               gap: '16px',
               alignItems: 'center'
             }}>
-              {state.coverImage && (
+              {generationState.coverImage && (
                 <Image
-                  src={`data:image/png;base64,${state.coverImage}`}
+                  src={`data:image/png;base64,${generationState.coverImage}`}
                   alt="Book cover"
                   style={{ 
                     width: '100%',
@@ -216,14 +247,14 @@ const CreateStoryProgressModal: React.FC<CreateStoryProgressModalProps> = ({
                   }}
                 />
               )}
-              {state.storyOutline && (
-                <Paragraph style={{ width: '100%' }}>{state.storyOutline}</Paragraph>
+              {generationState.storyOutline && (
+                <Paragraph style={{ width: '100%' }}>{generationState.storyOutline}</Paragraph>
               )}
             </div>
           </Card>
         )}
 
-        {state.pageImages.length > 0 && (
+        {generationState.pageImages.length > 0 && (
           <Card 
             title="Story Illustrations" 
             style={{ 
@@ -238,7 +269,7 @@ const CreateStoryProgressModal: React.FC<CreateStoryProgressModalProps> = ({
               gap: '12px',
               width: '100%'
             }}>
-              {state.pageImages.map((image, index) => (
+              {generationState.pageImages.map((image, index) => (
                 <Card
                   key={index}
                   bodyStyle={{ padding: '8px' }}
@@ -263,4 +294,4 @@ const CreateStoryProgressModal: React.FC<CreateStoryProgressModalProps> = ({
   );
 };
 
-export default CreateStoryProgressModal; 
+export default CreateStoryProgressModal;
