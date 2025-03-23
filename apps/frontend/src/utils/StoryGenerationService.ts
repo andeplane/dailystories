@@ -17,13 +17,14 @@ export interface StoryState {
   isGenerating: boolean;
   progress: number;
   statusMessage: string;
-  coverImage: string;
-  pageImages: string[];
+  error?: string;
+  coverImage?: string;  // Now a URL instead of base64
+  pageImages: string[];  // Now an array of URLs instead of base64
   pagesGenerated: number;
   currentPageText: string;
+  totalPages?: number;
   bookId?: string;
   title?: string;
-  error?: string;
 }
 
 export interface StoryPage {
@@ -37,10 +38,11 @@ class StoryGenerationService {
     isGenerating: false,
     progress: 0,
     statusMessage: 'Initializing',
-    coverImage: '',
+    coverImage: undefined,
     pageImages: [],
     pagesGenerated: 0,
-    currentPageText: ''
+    currentPageText: '',
+    totalPages: undefined
   };
   
   // Direct callbacks instead of event emitter
@@ -98,10 +100,11 @@ class StoryGenerationService {
       isGenerating: true,
       progress: 0,
       statusMessage: 'Initializing story generation...',
-      coverImage: '',
+      coverImage: undefined,
       pageImages: [],
       pagesGenerated: 0,
-      currentPageText: ''
+      currentPageText: '',
+      totalPages: undefined
     };
     this.notifyUpdateListeners();
 
@@ -157,7 +160,7 @@ class StoryGenerationService {
             const data = JSON.parse(line);
             console.log(`Received event:`, data.event, data);
             
-            this.processEvent(data, settings);
+            this.handleEvent(data);
           } catch (error) {
             console.error('Error parsing JSON:', error);
             console.error('Raw line data:', line);
@@ -228,124 +231,77 @@ class StoryGenerationService {
     }));
   }
 
-  private processEvent(data: any, settings: StorySettings): void {
+  private handleEvent(data: any) {
+    console.log('Received event:', data);
+    
     switch (data.event) {
       case 'book_created':
-        console.log('Book created:', data.title, data.book_id);
         this.state = {
           ...this.state,
-          progress: 10,
-          statusMessage: `Book created: ${data.title}`,
           bookId: data.book_id,
-          title: data.title
+          title: data.title,
+          statusMessage: 'Book created, generating cover...'
         };
-        console.log('SERVICE: Notifying update listeners for book_created:', this.state);
-        this.notifyUpdateListeners();
         break;
-
+        
       case 'cover_generated':
-        console.log('Cover generated, length:', data.cover_image?.length || 0);
-        // Ensure the cover image is properly formatted as a base64 string
-        let coverImage = data.cover_image;
-        if (coverImage && coverImage.startsWith('data:image/png;base64,')) {
-          coverImage = coverImage.replace('data:image/png;base64,', '');
-        }
-        
-        // Let's use the image for display but not save the full data to Firebase
-        // This prevents "Invalid nested entity" errors
         this.state = {
           ...this.state,
-          progress: 20,
-          coverImage: coverImage,
-          statusMessage: 'Cover generated, starting pages...'
+          coverImage: data.cover_image_url,
+          statusMessage: 'Cover generated, creating story...',
+          progress: 10
         };
-        console.log('SERVICE: Notifying update listeners for cover_generated');
-        this.notifyUpdateListeners();
         break;
-
+        
       case 'page_generated':
-        console.log(`Page ${data.page_number} generated, progress: ${data.progress}%`);
-        
-        // Ensure the page image is properly formatted as a base64 string
-        let pageImage = data.page?.illustrationBase64;
-        if (pageImage && pageImage.startsWith('data:image/png;base64,')) {
-          pageImage = pageImage.replace('data:image/png;base64,', '');
-        }
-        
-        // Truncate the image data to prevent Firebase errors
-        // Keep enough to display in the UI but not enough to break Firebase
-        // Firebase has ~1MB document limit
-        const MAX_IMG_SIZE = 100000; // 100KB should be safe
-        if (pageImage && pageImage.length > MAX_IMG_SIZE) {
-          console.log(`Truncating large image from ${pageImage.length} bytes to ${MAX_IMG_SIZE} bytes for storage`);
-          // Truncate to a safe size for Firebase
-          pageImage = pageImage.substring(0, MAX_IMG_SIZE);
-        }
+        // Use the progress from the server if available, otherwise calculate it
+        const progress = data.progress || 
+          (this.state.totalPages ? Math.round((data.page_number / this.state.totalPages) * 100) : 0);
         
         this.state = {
           ...this.state,
-          progress: Math.min(20 + (data.page_number / settings.numPages) * 80, 100),
+          pageImages: [...this.state.pageImages, data.page.illustrationUrl],
           pagesGenerated: data.page_number,
-          pageImages: [...this.state.pageImages, pageImage],
           currentPageText: data.page.text,
-          statusMessage: `Generated page ${data.page_number} of ${settings.numPages}`
+          progress,
+          statusMessage: `Generated page ${data.page_number}`
         };
-        console.log('SERVICE: Notifying update listeners for page_generated');
-        this.notifyUpdateListeners();
         break;
-
+        
       case 'error':
-        if (data.fatal) {
-          console.error('Fatal error:', data.error);
-          this.state = {
-            ...this.state,
-            statusMessage: `Error: ${data.error}`,
-            error: data.error,
-            isGenerating: false
-          };
-          this.notifyUpdateListeners();
-          this.notifyErrorListeners(data.error);
-        } else {
-          console.warn('Non-fatal error:', data.error);
-          this.state = {
-            ...this.state,
-            statusMessage: `Warning: ${data.error}`
-          };
-          this.notifyUpdateListeners();
-        }
+        this.state = {
+          ...this.state,
+          error: data.error,
+          isGenerating: !data.fatal
+        };
         break;
-
+        
       case 'complete':
-        console.log('Story generation completed:', data);
         this.state = {
           ...this.state,
           progress: 100,
           statusMessage: 'Story generation complete!',
           isGenerating: false
         };
-        this.notifyUpdateListeners();
         
-        // Build the final story object with truncated images for Firebase storage
         const story = {
           id: data.book_id,
           title: data.title,
-          summary: `A story about ${settings.bookTheme}`,
-          coverImageBase64: this.state.coverImage && this.state.coverImage.length > 100000 ? 
-                            this.state.coverImage.substring(0, 100000) : this.state.coverImage,
-          pages: this.state.pageImages.map((image: string, index: number) => ({
+          coverImageUrl: this.state.coverImage,
+          pages: this.state.pageImages.map((imageUrl, index) => ({
             text: this.state.currentPageText,
-            // Truncate the image data to prevent Firebase errors
-            illustrationBase64: image && image.length > 100000 ? 
-                               image.substring(0, 100000) : image
+            illustrationUrl: imageUrl
           }))
         };
         
         this.notifyCompleteListeners(story);
         break;
-
+        
       default:
-        console.warn('Unknown event type:', data);
+        console.log('Unknown event:', data);
     }
+    
+    this.notifyUpdateListeners();
   }
 
   private notifyUpdateListeners(): void {

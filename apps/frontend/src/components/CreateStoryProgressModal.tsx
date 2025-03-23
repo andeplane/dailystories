@@ -1,5 +1,5 @@
 import { Modal, Progress, Typography, Card, Button, Image } from 'antd';
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { storyGenerationService, StoryState } from "../utils/StoryGenerationService";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -17,6 +17,7 @@ interface Props {
 
 export default function CreateStoryProgressModal({ open, settings, onClose, onComplete, estimatedTime, elapsedTime, idToken }: Props) {
   const [state, setState] = useState<StoryState>(storyGenerationService.getState());
+  const isGeneratingRef = useRef(false);
 
   const handleUpdate = useCallback((newState: StoryState) => {
     console.log("MODAL: Received update:", newState);
@@ -32,29 +33,34 @@ export default function CreateStoryProgressModal({ open, settings, onClose, onCo
     console.error("MODAL: Error in story generation:", error);
   }, []);
 
+  // Set up event listeners only once when component mounts
   useEffect(() => {
     console.log("MODAL: Setting up event listeners");
     
-    // Set up listeners
     const unsubscribeUpdate = storyGenerationService.onUpdate(handleUpdate);
     const unsubscribeComplete = storyGenerationService.onComplete(handleComplete);
     const unsubscribeError = storyGenerationService.onError(handleError);
     
-    // Clean up on unmount
     return () => {
       console.log("MODAL: Cleaning up event listeners");
       unsubscribeUpdate();
       unsubscribeComplete();
       unsubscribeError();
     };
-  }, [handleUpdate, handleComplete, handleError]);
+  }, []); // Only run on mount and unmount
 
+  // Handle story generation separately
   useEffect(() => {
-    if (open && idToken && settings && !state.isGenerating) {
+    if (open && idToken && settings && !isGeneratingRef.current) {
       console.log("MODAL: Starting story generation with settings:", settings);
+      isGeneratingRef.current = true;
       storyGenerationService.generateStory(settings, idToken);
     }
-  }, [open, idToken, settings, state.isGenerating]);
+    
+    return () => {
+      isGeneratingRef.current = false;
+    };
+  }, [open, idToken, settings]);
 
   const handleCancel = () => {
     console.log("MODAL: Cancelling story generation");
