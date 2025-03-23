@@ -1,7 +1,19 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Story } from '@dailystories/shared';
 import { openDB } from 'idb';
 import { stories as storiesData } from '../data/stories';
+
+interface Page {
+  text: string;
+  illustrationBase64: string;
+}
+
+interface Story {
+  id: string;
+  title: string;
+  summary: string;
+  coverImageBase64: string;
+  pages: Page[];
+}
 
 interface StoryContextType {
   stories: Story[];

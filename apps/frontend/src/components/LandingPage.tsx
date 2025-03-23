@@ -4,13 +4,24 @@ import { Card, Row, Col, Popconfirm, Tooltip, Button } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useStories } from '../contexts/StoryContext';
-import { Story } from '@dailystories/shared';
 import CreateStoryModal from './CreateStoryModal';
-import { StorySettings } from '@dailystories/shared';
-import { MixpanelService } from '@dailystories/shared';
 import LoginButton from './LoginButton';
+import { StorySettings } from '../types/story';
 
 const { Meta } = Card;
+
+interface Page {
+  text: string;
+  illustrationBase64: string;
+}
+
+interface Story {
+  id: string;
+  title: string;
+  summary: string;
+  coverImageBase64: string;
+  pages: Page[];
+}
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -35,7 +46,6 @@ const LandingPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleCreateNew = () => {
-    MixpanelService.trackNewStoryClick();
     setIsModalOpen(true);
   };
 

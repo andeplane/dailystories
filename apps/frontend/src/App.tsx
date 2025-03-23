@@ -6,10 +6,22 @@ import 'antd/dist/reset.css';
 import StoryViewer from './components/StoryViewer';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { StoryProvider, useStories } from './contexts/StoryContext';
-import { Story } from '@dailystories/shared';
 import WelcomeModal from './components/WelcomeModal';
-import { MixpanelService } from '@dailystories/shared';
 import { AuthProvider } from './contexts/AuthContext';
+import StreamTest from './utils/StreamTest';
+
+interface Page {
+  text: string;
+  illustrationBase64: string;
+}
+
+interface Story {
+  id: string;
+  title: string;
+  summary: string;
+  coverImageBase64: string;
+  pages: Page[];
+}
 
 const StoryRoute = () => {
   const { id } = useParams();
@@ -27,18 +39,16 @@ const StoryRoute = () => {
 };
 
 const App: React.FC = () => {
-  useEffect(() => {
-    MixpanelService.trackAppLoad();
-  }, []);
-
   return (
     <AuthProvider>
       <StoryProvider>
         <Router>
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/stream-test" element={<StreamTest />} />
             <Route path="/story/:id" element={<StoryRoute />} />
           </Routes>
+          
           <WelcomeModal />
         </Router>
       </StoryProvider>

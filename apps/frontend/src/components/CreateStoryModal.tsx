@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Form, Input, InputNumber, Select, Divider, Button, message } from 'antd';
-import type { StorySettings } from '@dailystories/shared';
 import CreateStoryProgressModal from './CreateStoryProgressModal';
-import { MixpanelService } from '@dailystories/shared';
 import { useAuth } from '../contexts/AuthContext';
+import { StorySettings } from '../types/story';
 const { TextArea } = Input;
 
 interface CreateStoryModalProps {
@@ -64,9 +63,6 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
 
   const handleOk = () => {
     form.validateFields().then((values) => {
-      // Add tracking before submitting
-      MixpanelService.trackStorySettingsSubmit(values);
-
       // Save preferences to localStorage (excluding storylineInstructions)
       const preferencesToSave = {
         childName: values.childName,
@@ -81,10 +77,12 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
 
       const settings: StorySettings = {
         ...values,
+        interests: values.interests?.split(',').map((i: string) => i.trim()) || [],
+        colors: values.colors?.split(',').map((c: string) => c.trim()) || [],
         bookTheme: values.theme,
         childPreferences: {
-          interests: values.interests?.split(',').map((i: string) => i.trim()),
-          colors: values.colors?.split(',').map((c: string) => c.trim()),
+          interests: values.interests ? values.interests.split(',').map((i: string) => i.trim()) : undefined,
+          colors: values.colors ? values.colors.split(',').map((c: string) => c.trim()) : undefined
         },
         models: {
           outlineModel: 'gpt-4o-mini',
@@ -105,9 +103,6 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
     const interests = form.getFieldValue('interests');
     const language = form.getFieldValue('language') || 'English';
     
-    // Add tracking
-    MixpanelService.trackSuggestionClick(childAge, language);
-
     if (!childName || !childAge) {
       message.warning('Please enter the child\'s name and age first');
       return;
@@ -183,8 +178,6 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
   }, [form]);
 
   const handleModalClose = () => {
-    // Add tracking
-    MixpanelService.trackStorySettingsCancel();
     setShowGenerationModal(false);
     setGenerationSettings(null);
     onCancel();
@@ -382,8 +375,12 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ open, onCancel, onS
       {showGenerationModal && generationSettings && (
         <CreateStoryProgressModal
           open={showGenerationModal}
-          onCancel={handleModalClose}
           settings={generationSettings}
+          onClose={handleModalClose}
+          onComplete={(story) => {
+            setShowGenerationModal(false);
+            onSubmit(story);
+          }}
           estimatedTime={estimatedTime}
           elapsedTime={elapsedTime}
           idToken={idToken}
