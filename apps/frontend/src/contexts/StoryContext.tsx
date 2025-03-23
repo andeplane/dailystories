@@ -1,18 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
-
-interface Page {
-  text: string;
-  illustrationBase64: string;
-}
-
-interface Story {
-  id: string;
-  title: string;
-  summary: string;
-  coverImageBase64: string;
-  pages: Page[];
-}
+import { Story, Page } from '../types/story';
 
 interface StoryContextType {
   stories: Story[];

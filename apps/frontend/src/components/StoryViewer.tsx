@@ -2,22 +2,9 @@ import React from 'react';
 import { Typography, Image, Space, Card, Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftOutlined } from '@ant-design/icons';
+import { Story, Page } from '../types/story';
 
 const { Title, Paragraph } = Typography;
-
-interface Page {
-  text: string;
-  illustrationBase64?: string;
-  illustration_url?: string;
-}
-
-interface Story {
-  id: string;
-  title: string;
-  summary: string;
-  coverImageBase64: string;
-  pages: Page[];
-}
 
 interface StoryViewerProps {
   story: Story;
@@ -44,19 +31,21 @@ const StoryViewer: React.FC<StoryViewerProps> = ({ story }) => {
 
   const getImageSrc = (page: Page) => {
     console.log('Page data:', {
-      hasIllustrationUrl: !!page.illustration_url,
+      hasIllustrationUrl: !!page.illustrationUrl,
       hasBase64: !!page.illustrationBase64,
       base64Length: page.illustrationBase64?.length,
-      url: page.illustration_url
+      url: page.illustrationUrl
     });
     
-    if (page.illustration_url) {
-      return page.illustration_url;
+    if (page.illustrationUrl) {
+      return page.illustrationUrl;
     }
     if (page.illustrationBase64) {
-      const base64Data = `data:image/png;base64,${page.illustrationBase64}`;
-      console.log('Base64 data length:', base64Data.length);
-      return base64Data;
+      // Check if the base64 data already includes the data URL prefix
+      if (page.illustrationBase64.startsWith('data:')) {
+        return page.illustrationBase64;
+      }
+      return `data:image/png;base64,${page.illustrationBase64}`;
     }
     return '';
   };

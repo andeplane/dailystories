@@ -6,21 +6,13 @@ import { useNavigate } from 'react-router-dom';
 import { useStories } from '../contexts/StoryContext';
 import CreateStoryModal from './CreateStoryModal';
 import LoginButton from './LoginButton';
-import { StorySettings } from '../types/story';
+import { Story, StorySettings } from '../types/story';
 
 const { Meta } = Card;
 
 interface Page {
   text: string;
   illustrationBase64: string;
-}
-
-interface Story {
-  id: string;
-  title: string;
-  summary: string;
-  coverImageBase64: string;
-  pages: Page[];
 }
 
 const Footer: React.FC = () => {

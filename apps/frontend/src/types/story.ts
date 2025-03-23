@@ -22,4 +22,21 @@ export interface StorySettings {
     imageModel: string;
   };
   generate_images?: boolean;
+}
+
+export interface Page {
+  text: string;
+  illustrationBase64?: string;
+  illustrationUrl?: string;
+}
+
+export interface Story {
+  id: string;
+  title: string;
+  summary?: string;
+  coverImageBase64?: string;
+  coverImageUrl?: string;
+  pages: Page[];
+  created_at?: string;
+  status?: string;
 } 
