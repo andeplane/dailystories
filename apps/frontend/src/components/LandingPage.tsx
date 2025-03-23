@@ -214,7 +214,13 @@ const LandingPage: React.FC = () => {
                 />
                 <Popconfirm
                   title="Are you sure you want to delete this story?"
-                  onConfirm={() => handleDeleteStory(story.id)}
+                  onConfirm={(e) => {
+                    e?.stopPropagation();
+                    handleDeleteStory(story.id);
+                  }}
+                  onCancel={(e) => {
+                    e?.stopPropagation();
+                  }}
                   okText="Yes"
                   cancelText="No"
                 >
@@ -224,7 +230,6 @@ const LandingPage: React.FC = () => {
                     icon={<DeleteOutlined />}
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDeleteStory(story.id);
                     }}
                   />
                 </Popconfirm>
