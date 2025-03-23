@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { openDB } from 'idb';
-import { stories as storiesData } from '../data/stories';
+import { useAuth } from './AuthContext';
 
 interface Page {
   text: string;
@@ -24,56 +23,101 @@ interface StoryContextType {
 
 const StoryContext = createContext<StoryContextType | undefined>(undefined);
 
-// Initialize IndexedDB
-const initDB = async () => {
-  const db = await openDB('stories-db', 1, {
-    upgrade(db) {
-      db.createObjectStore('stories', { keyPath: 'id' });
-    },
-  });
-  return db;
-};
+const API_BASE_URL = 'http://localhost:8000/api';
 
 export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [stories, setStories] = useState<Story[]>([]);
+  const { idToken } = useAuth();
 
   useEffect(() => {
-    // Load books when component mounts
-    const loadBooks = async () => {
-      const db = await initDB();
-      const allStories = await db.getAll('stories');
-      // Mark preinstalled stories
-      const preinstalledWithFlag = storiesData.map(story => ({
-        ...story,
-        isPreinstalled: true
-      }));
-      setStories([...preinstalledWithFlag, ...allStories]);
+    // Load stories from the API when component mounts or when idToken changes
+    const loadStories = async () => {
+      if (!idToken) return;
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/stories`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch stories');
+        }
+        const data = await response.json();
+        setStories(data);
+      } catch (error) {
+        console.error('Error loading stories:', error);
+        setStories([]);
+      }
     };
-    loadBooks();
-  }, []);
+    loadStories();
+  }, [idToken]); // Re-run when idToken changes
 
   const addStory = async (storyData: Omit<Story, 'id'>) => {
-    const db = await initDB();
-    const newStory: Story = {
-      ...storyData,
-      id: crypto.randomUUID(),
-    };
-    
-    await db.add('stories', newStory);
+    if (!idToken) {
+      throw new Error('Not authenticated');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/stories`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${idToken}`,
+      },
+      body: JSON.stringify(storyData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to add story');
+    }
+
+    const newStory = await response.json();
     setStories(prev => [...prev, newStory]);
     return newStory;
   };
 
   const getStory = async (id: string) => {
-    const db = await initDB();
-    const dbStory = await db.get('stories', id);
-    const dataStory = storiesData.find(story => story.id === id);
-    return dbStory || dataStory;
+    if (!idToken) {
+      throw new Error('Not authenticated');
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/stories/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          return undefined;
+        }
+        throw new Error('Failed to fetch story');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching story:', error);
+      return undefined;
+    }
   };
 
   const deleteStory = async (id: string) => {
-    const db = await initDB();
-    await db.delete('stories', id);
+    if (!idToken) {
+      throw new Error('Not authenticated');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/stories/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${idToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete story');
+    }
+
     setStories(prev => prev.filter(story => story.id !== id));
   };
 
